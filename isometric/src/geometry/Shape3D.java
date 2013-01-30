@@ -15,10 +15,11 @@ public class Shape3D {
 		faces = new Vector<int[]>();
 	}
 
-	public Shape3D(Point3D[] vs, int[][] es) {
+	public Shape3D(Point3D[] vs, int[][] es, int[][] fs) {
 		this();
 		for(int i=0; i<vs.length; i++) addVertex(vs[i]);
 		for(int i=0; i<es.length; i++) addEdge(es[i]);
+		for(int i=0; i<fs.length; i++) addFace(fs[i], fs[i].length);
 	}
 
 	public void addVertex(Point3D v) {
@@ -88,7 +89,7 @@ public class Shape3D {
 			 {2,6,7,3},{2,6,5,1},{0,3,7,4}};
 		
 		public Box() {			
-			super(vs, es);			
+			super(vs, es, fs);			
 		}
 		
 		public Box(Point3D from, Point3D to) {
