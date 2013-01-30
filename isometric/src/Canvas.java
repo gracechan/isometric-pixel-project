@@ -49,7 +49,6 @@ implements MouseListener, MouseMotionListener {
 	}
 
 	public void drawShape(Graphics2D g, Shape3D shape, double[][] isoMatrix) {
-
 		g.setColor(Color.black);
 
 		// draw vertices (mostly for picking purposes because it helps to highlight
@@ -68,10 +67,27 @@ implements MouseListener, MouseMotionListener {
 			Point2D.Double p2_2D = p2.transform(isoMatrix);
 			g.drawLine((int)p1_2D.x, (int)p1_2D.y, (int)p2_2D.x, (int)p2_2D.y);
 		}
+		
+		for(int i=0; i<shape.getNumFaces(); i++) {
+			int[] face = shape.getFace(i);
+			int numVertices = face.length;
+			int[] faceX = new int[numVertices];
+			int[] faceY = new int[numVertices];
+			for(int j=0; j<numVertices; j++) {
+				Point3D p = shape.getVertex(face[j]);
+				Point2D.Double v = p.transform(isoMatrix);
+				faceX[j] = (int) v.x;
+				faceY[j] = (int) v.y;
+			}
+			g.setColor(Color.cyan);
+			g.fillPolygon(faceX, faceY, numVertices);
+		}
 	}	
 
 	public void mouseClicked(MouseEvent e) {
 		System.out.println("Canvas.mouseClicked");
+		System.out.print("Source: ");
+		System.out.println("X = " + e.getX() + " Y = " + e.getY());
 	}
 
 	public void mousePressed(MouseEvent e) {

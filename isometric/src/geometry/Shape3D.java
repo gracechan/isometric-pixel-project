@@ -7,10 +7,12 @@ import java.util.Vector;
 public class Shape3D {
 	Vector<Point3D> vertices;
 	Vector<int[]> edges;
+	Vector<int[]> faces;
 
 	public Shape3D() {
 		vertices = new Vector<Point3D>();
 		edges = new Vector<int[]>();
+		faces = new Vector<int[]>();
 	}
 
 	public Shape3D(Point3D[] vs, int[][] es) {
@@ -27,7 +29,15 @@ public class Shape3D {
 		int[] e_ = {e[0], e[1]};
 		edges.add(e_);
 	}
-
+	
+	public void addFace(int[] f, int numVertices) {
+		int[] f_ = new int[numVertices];
+		for(int i=0; i<numVertices; i++) {
+			f_[i] = f[i];
+		}
+		faces.add(f_);
+	}
+	
 	public int getNumEdges() {
 		return (edges==null) ? 0 : edges.size();
 	}
@@ -43,6 +53,19 @@ public class Shape3D {
 
 	public Point3D getVertex(int i) {
 		return vertices.get(i).clone();
+	}
+	
+	public int getNumFaces() {
+		return (faces==null) ? 0 : faces.size();
+	}
+	
+	public int[] getFace(int i) {
+		int numVertices = faces.get(i).length;
+		int[] face = new int[numVertices];
+		for(int x=0; x<numVertices; x++) {
+			face[x] = faces.get(i)[x];
+		}
+		return face;
 	}
 
 	public static class Box extends Shape3D {
@@ -60,6 +83,9 @@ public class Shape3D {
 			   {{0,1},{1,2},{2,3},{3,0},
 				{4,5},{5,6},{6,7},{7,4},
 				{0,4},{1,5},{2,6},{3,7}};
+		private static final int[][] fs = 
+			{{0,1,2,3},{4,5,6,7},{0,1,5,4},
+			 {2,6,7,3},{2,6,5,1},{0,3,7,4}};
 		
 		public Box() {			
 			super(vs, es);			
@@ -75,6 +101,7 @@ public class Shape3D {
 			}
 			
 			for(int i=0; i<es.length; i++) addEdge(es[i]);
+			for(int i=0; i<fs.length; i++) addFace(fs[i], 4);
 		}
 	}
 }
