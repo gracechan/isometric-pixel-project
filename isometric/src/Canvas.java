@@ -79,8 +79,7 @@ implements MouseListener, MouseMotionListener {
 				faceX[j] = (int) v.x;
 				faceY[j] = (int) v.y;
 			}
-			Color c = new Color(255, 0, 0, 25);
-			g.setColor(c);
+			g.setColor(shape.getColor());
 			g.fillPolygon(faceX, faceY, numVertices);
 		}
 	}	

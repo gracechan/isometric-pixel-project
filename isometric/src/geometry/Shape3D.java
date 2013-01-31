@@ -1,6 +1,6 @@
 package geometry;
 
-//import java.awt.Color;
+import java.awt.Color;
 //import java.awt.Graphics2D;
 import java.util.Vector;
 
@@ -8,15 +8,29 @@ public class Shape3D {
 	Vector<Point3D> vertices;
 	Vector<int[]> edges;
 	Vector<int[]> faces;
+	Color colour;
 
 	public Shape3D() {
 		vertices = new Vector<Point3D>();
 		edges = new Vector<int[]>();
 		faces = new Vector<int[]>();
+		colour = new Color(255, 0, 0, 25);
+	}
+	
+	public Shape3D(Color c) {
+		this();
+		colour = c;
 	}
 
 	public Shape3D(Point3D[] vs, int[][] es, int[][] fs) {
 		this();
+		for(int i=0; i<vs.length; i++) addVertex(vs[i]);
+		for(int i=0; i<es.length; i++) addEdge(es[i]);
+		for(int i=0; i<fs.length; i++) addFace(fs[i], fs[i].length);
+	}
+	
+	public Shape3D(Point3D[] vs, int[][] es, int[][] fs, Color c) {
+		this(c);
 		for(int i=0; i<vs.length; i++) addVertex(vs[i]);
 		for(int i=0; i<es.length; i++) addEdge(es[i]);
 		for(int i=0; i<fs.length; i++) addFace(fs[i], fs[i].length);
@@ -68,6 +82,14 @@ public class Shape3D {
 		}
 		return face;
 	}
+	
+	public void changeColor(Color c) {
+		colour = c;
+	}
+	
+	public Color getColor() {
+		return colour;
+	}
 
 	public static class Box extends Shape3D {
 		private static final Point3D[] vs =
@@ -92,6 +114,10 @@ public class Shape3D {
 			super(vs, es, fs);			
 		}
 		
+		public Box(Color c) {			
+			super(vs, es, fs, c);			
+		}
+		
 		public Box(Point3D from, Point3D to) {
 			super();
 			for(int i=0; i<vs.length; i++) {
@@ -104,5 +130,11 @@ public class Shape3D {
 			for(int i=0; i<es.length; i++) addEdge(es[i]);
 			for(int i=0; i<fs.length; i++) addFace(fs[i], 4);
 		}
+		
+		public Box(Point3D from, Point3D to, Color c) {
+			this(from, to);
+			changeColor(c);
+		}
+
 	}
 }
