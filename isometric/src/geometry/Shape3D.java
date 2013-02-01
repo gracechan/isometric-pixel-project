@@ -9,14 +9,12 @@ public class Shape3D {
 	Vector<int[]> edges;
 	Vector<int[]> faces;
 	Color colour;
-	int selectedVertex; 
 
 	public Shape3D() {
 		vertices = new Vector<Point3D>();
 		edges = new Vector<int[]>();
 		faces = new Vector<int[]>();
 		colour = new Color(255, 0, 0, 25);
-		selectedVertex = -1;
 	}
 	
 	public Shape3D(Color c) {
@@ -77,14 +75,6 @@ public class Shape3D {
 		return colour;
 	}
 	
-	public void selectVertex(int x) {
-		// can only have one vertex selected at a time, clear previously set vertex if applicable.
-		if (selectedVertex != -1) {
-			vertices.get(selectedVertex).setSelected(false);
-		}
-		vertices.get(x).setSelected(true);
-		selectedVertex = x;
-	}
 	public static class Box extends Shape3D {
 		private static final Point3D[] vs =
 			   {new Point3D(0,0,0),

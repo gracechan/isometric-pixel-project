@@ -3,16 +3,13 @@ import java.awt.geom.Point2D;
 
 public class Point3D {
 	public double x, y, z;
-	boolean selected;
 
 	public Point3D() {
 		x = 0; y = 0; z = 0;
-		selected = false;
 	}
 
 	public Point3D(double[] p) {
 		x = p[0]; y = p[1]; z = p[2];
-		selected = false;
 	}
 
 	public Point3D(double x, double y, double z) {
@@ -48,13 +45,5 @@ public class Point3D {
 		x += tx;
 		y += ty;
 		z += tz;
-	}
-	
-	public boolean isSelected() {
-		return selected;
-	}
-	
-	public void setSelected(boolean s) {
-		selected = s;
 	}
 }

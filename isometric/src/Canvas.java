@@ -42,7 +42,7 @@ implements MouseListener, MouseMotionListener {
 		g2.translate(getWidth()/2, getHeight()/2);
 
 		for(int i=0; i<data.getNumShapes(); i++) {
-			drawShape(g2, data.getShape(i), isoMatrix);
+			drawShape(g2, data.getShape(i), isoMatrix, i);
 		}
 		g2.setTransform(at);
 		revalidate();
@@ -52,8 +52,6 @@ implements MouseListener, MouseMotionListener {
 		int hitX = e.getX();
 		int hitY = e.getY();
 		
-		System.out.println("hitX = " + hitX + " hitY = " + hitY);
-		
 		for(int i=0; i<data.getNumShapes(); i++) {
 			Shape3D s = data.getShape(i);
 			for(int j=0; j<s.getNumVertices(); j++) {
@@ -62,29 +60,27 @@ implements MouseListener, MouseMotionListener {
 				p_2D.setLocation(p_2D.x + getWidth()/2, p_2D.y + getHeight()/2);
 				Rectangle r = new Rectangle((int)p_2D.x-3, (int)p_2D.y-3, 6, 6);
 				
-				System.out.println("rectangle left corner at (" + r.getX() + ", " + r.getY() + ")");
 				if (r.contains(hitX, hitY)) {
-					System.out.println("I'm near this point! :D");
-					s.selectVertex(j);
+					data.setSelectedPoint(i, j);
 				}
 			}
 		}
 	}
 	
-	public void drawShape(Graphics2D g, Shape3D shape, double[][] isoMatrix) {
+	public void drawShape(Graphics2D g, Shape3D shape, double[][] isoMatrix, int shapeIndex) {
 
 		g.setColor(Color.black);
-
 		// draw vertices (mostly for picking purposes because it helps to highlight
 		// a selected vertex if we wish to modify its location)
 		for(int i=0; i<shape.getNumVertices(); i++) {
 			Point3D p = shape.getVertex(i);
 			Point2D.Double p_2D = p.transform(isoMatrix);
 			
-			g.setColor(p.isSelected() ? Color.red : Color.black);
+			g.setColor(data.isVertexSelected(shapeIndex, i) ? Color.red : Color.black);
 			g.fillOval((int)(p_2D.x-3), (int)(p_2D.y-3), 6, 6);
 		}
-
+		
+		g.setColor(Color.black);
 		for(int i=0; i<shape.getNumEdges(); i++) {
 			int[] edgeInds = shape.getEdge(i);
 			Point3D p1 = shape.getVertex(edgeInds[0]);
