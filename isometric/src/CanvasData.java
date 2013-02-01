@@ -7,11 +7,15 @@ public class CanvasData {
 	Vector<Shape3D> shapes3D;
 	IsometricTransform transform;
 	Point3D centre;
+	int[] selectedPoint;
 
 	public CanvasData() {
 		shapes3D = new Vector<Shape3D>();
 		transform = new IsometricTransform(-1.0/3.0, 1.0/2.0);
 		centre = new Point3D(0,0,0);
+		selectedPoint = new int[2];
+		selectedPoint[0] = -1;
+		selectedPoint[1] = -1;
 	}
 
 	public void addShape(Shape3D s) {
@@ -40,5 +44,14 @@ public class CanvasData {
 
 	public double[][] getIsometricMatrix() {
 		return transform.getMatrix();
+	}
+	
+	public void setSelectedPoint(int shape, int vertex) {
+		selectedPoint[0] = shape;
+		selectedPoint[1] = vertex;
+	}
+	
+	public boolean isVertexSelected(int shape, int vertex) {
+		return selectedPoint[0] == shape && selectedPoint[1] == vertex;
 	}
 }
