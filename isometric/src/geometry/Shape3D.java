@@ -1,16 +1,27 @@
 package geometry;
 
-//import java.awt.Color;
+import java.awt.Color;
 //import java.awt.Graphics2D;
 import java.util.Vector;
 
 public class Shape3D {
 	Vector<Point3D> vertices;
 	Vector<int[]> edges;
+	Vector<int[]> faces;
+	Color colour;
+	int selectedVertex; 
 
 	public Shape3D() {
 		vertices = new Vector<Point3D>();
 		edges = new Vector<int[]>();
+		faces = new Vector<int[]>();
+		colour = new Color(255, 0, 0, 25);
+		selectedVertex = -1;
+	}
+	
+	public Shape3D(Color c) {
+		this();
+		colour = c;
 	}
 
 	public Shape3D(Point3D[] vs, int[][] es) {
@@ -44,7 +55,36 @@ public class Shape3D {
 	public Point3D getVertex(int i) {
 		return vertices.get(i).clone();
 	}
-
+	
+	public int getNumFaces() {
+		return (faces==null) ? 0 : faces.size();
+	}
+	
+	public int[] getFace(int i) {
+		int numVertices = faces.get(i).length;
+		int[] face = new int[numVertices];
+		for(int x=0; x<numVertices; x++) {
+			face[x] = faces.get(i)[x];
+		}
+		return face;
+	}
+	
+	public void changeColor(Color c) {
+		colour = c;
+	}
+	
+	public Color getColor() {
+		return colour;
+	}
+	
+	public void selectVertex(int x) {
+		// can only have one vertex selected at a time, clear previously set vertex if applicable.
+		if (selectedVertex != -1) {
+			vertices.get(selectedVertex).setSelected(false);
+		}
+		vertices.get(x).setSelected(true);
+		selectedVertex = x;
+	}
 	public static class Box extends Shape3D {
 		private static final Point3D[] vs =
 			   {new Point3D(0,0,0),

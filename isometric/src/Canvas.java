@@ -48,6 +48,29 @@ implements MouseListener, MouseMotionListener {
 		revalidate();
 	}
 
+	public void checkSelected(MouseEvent e) {
+		int hitX = e.getX();
+		int hitY = e.getY();
+		
+		System.out.println("hitX = " + hitX + " hitY = " + hitY);
+		
+		for(int i=0; i<data.getNumShapes(); i++) {
+			Shape3D s = data.getShape(i);
+			for(int j=0; j<s.getNumVertices(); j++) {
+				Point3D p = s.getVertex(j);
+				Point2D.Double p_2D = p.transform(data.getIsometricMatrix());
+				p_2D.setLocation(p_2D.x + getWidth()/2, p_2D.y + getHeight()/2);
+				Rectangle r = new Rectangle((int)p_2D.x-3, (int)p_2D.y-3, 6, 6);
+				
+				System.out.println("rectangle left corner at (" + r.getX() + ", " + r.getY() + ")");
+				if (r.contains(hitX, hitY)) {
+					System.out.println("I'm near this point! :D");
+					s.selectVertex(j);
+				}
+			}
+		}
+	}
+	
 	public void drawShape(Graphics2D g, Shape3D shape, double[][] isoMatrix) {
 
 		g.setColor(Color.black);
@@ -57,6 +80,8 @@ implements MouseListener, MouseMotionListener {
 		for(int i=0; i<shape.getNumVertices(); i++) {
 			Point3D p = shape.getVertex(i);
 			Point2D.Double p_2D = p.transform(isoMatrix);
+			
+			g.setColor(p.isSelected() ? Color.red : Color.black);
 			g.fillOval((int)(p_2D.x-3), (int)(p_2D.y-3), 6, 6);
 		}
 
@@ -72,6 +97,8 @@ implements MouseListener, MouseMotionListener {
 
 	public void mouseClicked(MouseEvent e) {
 		System.out.println("Canvas.mouseClicked");
+		checkSelected(e);
+		repaint();
 	}
 
 	public void mousePressed(MouseEvent e) {
