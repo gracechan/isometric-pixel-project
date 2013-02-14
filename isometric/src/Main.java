@@ -1,5 +1,5 @@
-import geometry.Point3D;
-import geometry.Shape3D;
+//import geometry.Point3D;
+//import geometry.Shape3D;
 
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;

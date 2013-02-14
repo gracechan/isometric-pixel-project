@@ -1,5 +1,5 @@
 package geometry;
-import java.awt.geom.Point2D;
+import geometry.Point2D;
 
 public class Point3D {
 	public double x, y, z;
@@ -24,10 +24,10 @@ public class Point3D {
 		return new Point3D(this);
 	}	
 
-	public Point2D.Double transform(double[][] M) {
+	public Point2D transform(double[][] M) {
 		double newX = M[0][0]*x + M[0][1]*y + M[0][2]*z;
 		double newY = M[1][0]*x + M[1][1]*y + M[1][2]*z;
-		return new Point2D.Double(newX, newY);
+		return new Point2D(newX, newY);
 	}
 
 	public String toString() {
@@ -35,15 +35,17 @@ public class Point3D {
 		return s;
 	}
 
-	public void scale(double sx, double sy, double sz) {
+	public Point3D scale(double sx, double sy, double sz) {
 		x *= sx;
 		y *= sy;
 		z *= sz;
+		return clone();
 	}
 
-	public void translate(double tx, double ty, double tz) {
+	public Point3D translate(double tx, double ty, double tz) {
 		x += tx;
 		y += ty;
 		z += tz;
+		return clone();
 	}
 }

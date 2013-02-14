@@ -19,7 +19,7 @@ public class Point2D {
 	public Point2D(Point2D p) {
 		x = p.x; y = p.y;
 	}
-	
+
 	public Point2D clone() {
 		return new Point2D(this);
 	}
@@ -29,13 +29,26 @@ public class Point2D {
 		return s;
 	}
 
-	public void scale(double sx, double sy) {
+	public Point2D scale(double sx, double sy) {
 		x *= sx;
 		y *= sy;
+		return clone();
 	}
 
-	public void translate(double tx, double ty) {
+	public Point2D translate(double tx, double ty) {
 		x += tx;
 		y += ty;
+		return clone();
+	}
+	
+	
+	public static Point2D findCoefficients(Point2D axis1, Point2D axis2, Point2D location) {
+		double x = 0, y = 0;
+		y = (location.x * axis1.y - location.y * axis1.x) / (axis2.x * axis1.y - axis1.x * axis2.y);
+		x = (axis1.x != 0) ? 
+				((location.x - axis2.x * y) / axis1.x)
+				: ((location.y - axis2.y * y) / axis1.y);
+		
+		return new Point2D(x, y);
 	}
 }

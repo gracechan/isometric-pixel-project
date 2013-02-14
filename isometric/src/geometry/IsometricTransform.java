@@ -19,7 +19,7 @@ public class IsometricTransform {
 	private static double[][] computeMatrix(double negSlope, double posSlope) {
 		double angle1 = Math.acos(Math.sqrt(-posSlope*negSlope));
 		double angle2 = Math.atan(Math.sqrt(-posSlope/negSlope));
-		double[][] M = new double[3][3];
+		double[][] M = new double[2][3];
 		M[0][1] = Math.cos(angle2);
 		M[0][0] = -Math.sin(angle2);
 		M[0][2] = 0;

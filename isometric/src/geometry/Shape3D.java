@@ -53,6 +53,12 @@ public class Shape3D {
 		faces.add(f_);
 	}
 	
+	public void translate(double tx, double ty, double tz) {
+		for(int i=0; i<getNumVertices(); i++) {
+			vertices.get(i).translate(tx, ty, tz);
+		}
+	}
+	
 	public int getNumEdges() {
 		return (edges==null) ? 0 : edges.size();
 	}
@@ -90,7 +96,7 @@ public class Shape3D {
 	public Color getColor() {
 		return colour;
 	}
-
+	
 	public static class Box extends Shape3D {
 		private static final Point3D[] vs =
 			   {new Point3D(0,0,0),
