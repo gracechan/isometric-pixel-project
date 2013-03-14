@@ -32,7 +32,6 @@ public class CanvasData {
 		
 		for (int i=0; i < axes_3D.length; i++) {
 			axes_2D[i] = axes_3D[i].transform(getIsometricMatrix());
-			System.out.println(axes_2D[i].toString());
 		}
 	}
 
@@ -46,6 +45,7 @@ public class CanvasData {
 
 	public void removeShape(int i) {
 		shapes3D.remove(i);
+		if (i == selectedPoint[0]) clearSelectedPoint();
 	}
 	
 	public void clearShapes() {
@@ -82,56 +82,44 @@ public class CanvasData {
 		return selectedPoint[0] == shape;
 	}
 	
-	public void translateShape(Point2D dest) {
-		int i, shape = selectedPoint[0], vertex = selectedPoint[1];
-		if (shape == -1 && vertex == -1) {
-			System.out.println("No Point Selected");
-			return;
-		}
-		
-		Point3D vertex_3D = shapes3D.get(shape).getVertex(vertex);
-		Point2D vertex_2D = vertex_3D.transform(getIsometricMatrix());
+	public Point3D get3Dequivalent(Point2D origin, Point2D dest) {
 		Point2D coeffs_vertex, coeffs_dest;
 		
-		for(i=0; i < axes_2D.length; i++) {
+		for(int i=0; i < axes_2D.length; i++) {
 			// find out distance from origin
 			coeffs_vertex = 
-					Point2D.findCoefficients(axes_2D[i], axes_2D[(i+1)%axes_2D.length], vertex_2D);
+					Point2D.findCoefficients(axes_2D[i], axes_2D[(i+1)%axes_2D.length], origin);
 			
 			coeffs_dest = 
 					Point2D.findCoefficients(axes_2D[i], axes_2D[(i+1)%axes_2D.length], dest);	
 			
-			if (coeffs_vertex.x >= 0 && coeffs_vertex.y >= 0) {	
-				System.out.println("coeffs_dest: " + coeffs_dest);
-				Point2D test = new Point2D(
-						axes_2D[i].x * coeffs_dest.x + axes_2D[(i+1)%axes_2D.length].x * coeffs_dest.y,
-						axes_2D[i].y * coeffs_dest.x + axes_2D[(i+1)%axes_2D.length].y * coeffs_dest.y);
-				Point2D test2 = new Point2D(
-						axes_2D[i].x * coeffs_vertex.x + axes_2D[(i+1)%axes_2D.length].x * coeffs_vertex.y,
-						axes_2D[i].y * coeffs_vertex.x + axes_2D[(i+1)%axes_2D.length].y * coeffs_vertex.y);
-				
-				System.out.println("test: " + test + " dest: " + dest);
-				System.out.println("test2: " + test2 + " dest: " + vertex_2D);
-				
+			if (coeffs_vertex.x >= 0 && coeffs_vertex.y >= 0) {					
 				// find out what point is in 3D
 				Point3D dest_3D = new Point3D(
 						axes_3D[i].x * coeffs_dest.x + axes_3D[(i+1)%axes_2D.length].x * coeffs_dest.y,
 						axes_3D[i].y * coeffs_dest.x + axes_3D[(i+1)%axes_2D.length].y * coeffs_dest.y,
 						axes_3D[i].z * coeffs_dest.x + axes_3D[(i+1)%axes_2D.length].z * coeffs_dest.y);
-
-				System.out.println("Old position: " + vertex_3D.toString());
-				System.out.println("New position 3D: " + dest_3D.toString());
-				System.out.println("New position 2D: " + dest_3D.transform(getIsometricMatrix()));
 				
-				Point3D distance_3D = new Point3D(
-						dest_3D.x - vertex_3D.x,
-						dest_3D.y - vertex_3D.y,
-						dest_3D.z - vertex_3D.z);
-				
-				shapes3D.get(shape).translate(distance_3D.x, distance_3D.y, distance_3D.z);
-				System.out.println("translate shape " + distance_3D.toString());
-				return;
+				return dest_3D;
 			}
 		}
+		
+		return null;
+	}
+	
+	public void translateShape(Point2D dest) {
+		int shape = selectedPoint[0], vertex = selectedPoint[1];
+		if (shape == -1 && vertex == -1) return;
+		
+		Point3D vertex_3D = shapes3D.get(shape).getVertex(vertex);
+		Point2D vertex_2D = vertex_3D.transform(getIsometricMatrix());
+		Point3D dest_3D = get3Dequivalent(vertex_2D, dest);
+
+		Point3D distance_3D = new Point3D(
+				dest_3D.x - vertex_3D.x,
+				dest_3D.y - vertex_3D.y,
+				dest_3D.z - vertex_3D.z);
+		
+		shapes3D.get(shape).translate(distance_3D.x, distance_3D.y, distance_3D.z);
 	}
 }

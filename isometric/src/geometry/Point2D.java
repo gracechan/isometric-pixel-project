@@ -29,16 +29,14 @@ public class Point2D {
 		return s;
 	}
 
-	public Point2D scale(double sx, double sy) {
+	public void scale(double sx, double sy) {
 		x *= sx;
 		y *= sy;
-		return clone();
 	}
 
-	public Point2D translate(double tx, double ty) {
+	public void translate(double tx, double ty) {
 		x += tx;
 		y += ty;
-		return clone();
 	}
 	
 	

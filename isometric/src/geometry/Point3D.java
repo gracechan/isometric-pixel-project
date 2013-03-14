@@ -35,17 +35,15 @@ public class Point3D {
 		return s;
 	}
 
-	public Point3D scale(double sx, double sy, double sz) {
+	public void scale(double sx, double sy, double sz) {
 		x *= sx;
 		y *= sy;
 		z *= sz;
-		return clone();
 	}
 
-	public Point3D translate(double tx, double ty, double tz) {
+	public void translate(double tx, double ty, double tz) {
 		x += tx;
 		y += ty;
 		z += tz;
-		return clone();
 	}
 }

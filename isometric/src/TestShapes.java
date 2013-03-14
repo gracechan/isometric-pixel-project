@@ -15,7 +15,7 @@ public class TestShapes {
 		shapes.add(leftArm);
 		Shape3D rightArm = new Shape3D.Box(new Point3D(-30,40,20), new Point3D(-10,120,40), new Color(0, 0, 255, 25));
 		shapes.add(rightArm);
-		Shape3D leftLeg = new Shape3D.Box(new Point3D(20,-20,-40), new Point3D(30,0,-200), new Color(255, 255, 0, 25));
+		Shape3D leftLeg = new Shape3D.Box(new Point3D(30,0,-200), new Point3D(20,-20,-40), new Color(255, 255, 0, 25));
 		shapes.add(leftLeg);
 		Shape3D rightLeg = new Shape3D.Box(new Point3D(-20,20,-40), new Point3D(0,30,-200), new Color(255, 255, 0, 25));
 		shapes.add(rightLeg);
