@@ -29,78 +29,7 @@ implements MouseListener, MouseMotionListener {
 	public Dimension getPreferredSize() {
 		return new Dimension(getWidth(), getHeight());
 	}
-	
-	public void drawAxes(Graphics2D g2) {
-		// draw axis
-		double[][] isoMatrix = data.getIsometricMatrix();
-		
-		Point3D x_axis = new Point3D(600, 0, 0);
-		Point3D y_axis = new Point3D(0, 600, 0);
-		Point3D z_axis = new Point3D(0, 0, 600);
-		Point3D x_axis_neg = new Point3D(-600, 0, 0);
-		Point3D y_axis_neg = new Point3D(0, -600, 0);
-		Point3D z_axis_neg = new Point3D(0, 0, -600);
-		
-		Point2D x_axis2D = x_axis.transform(isoMatrix);
-		Point2D y_axis2D = y_axis.transform(isoMatrix);
-		Point2D z_axis2D = z_axis.transform(isoMatrix);
-		Point2D x_axis2D_neg = x_axis_neg.transform(isoMatrix);
-		Point2D y_axis2D_neg = y_axis_neg.transform(isoMatrix);
-		Point2D z_axis2D_neg = z_axis_neg.transform(isoMatrix);
-		
-		g2.setColor(Color.RED);
-		g2.drawLine(0, 0, (int) x_axis2D.x, (int) x_axis2D.y);
-		g2.drawLine(0, 0, (int) x_axis2D_neg.x, (int) x_axis2D_neg.y);
-		g2.setColor(Color.pink);
-		g2.drawLine(0, 0, (int) y_axis2D.x, (int) y_axis2D.y);
-		g2.drawLine(0, 0, (int) y_axis2D_neg.x, (int) y_axis2D_neg.y);
-		g2.setColor(Color.blue);
-		g2.drawLine(0, 0, (int) z_axis2D.x, (int) z_axis2D.y);
-		g2.drawLine(0, 0, (int) z_axis2D_neg.x, (int) z_axis2D_neg.y);	
-	}
-	
-	public void paintLine(Graphics2D g2, int slopeY, int slopeX, Point2D p1, Point2D p2) {
-		if (slopeX == 0) {
-			// draw vertical line
-			g2.drawLine((int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
-			return;
-		}
-		// start at end farthest to the left
-		Point2D start = (p1.x <= p2.x) ? p1.clone() : p2.clone();
-		Point2D end = (p1.x > p2.x) ? p1.clone() : p2.clone();
-		System.out.println("p1: " + p1.toString());
-		System.out.println("p2: " + p2.toString());
-		
-		if (slopeY * slopeX < 0) {		
-			slopeX = Math.abs(slopeX);
-			while(start.x < end.x && start.y >= end.y) {
-				// draw the line
-				int i=0;
-				for (i=0; i<slopeX; i++) {
-					g2.fillRect((int)start.x+i, (int)start.y, 1, 1);
-					if (start.x+1 == end.x) {
-						break;
-					}
-				}
-				start.x += i;
-				start.y -= 1;
-			}
-		} else {
-			slopeX = Math.abs(slopeX);
-			while(start.x < end.x && start.y <= end.y) {
-				// draw the line
-				int i=0;
-				for (i=0; i<slopeX;i++) {
-					g2.fillRect((int)start.x+i, (int)start.y, 1, 1);
-					if (start.x+1 == end.x) {
-						break;
-					}
-				}
-				start.x += i;
-				start.y += 1;
-			}
-		}
-	}
+
 
 	// add all the drawing code here
 	public void paintComponent(Graphics g) {
@@ -114,17 +43,13 @@ implements MouseListener, MouseMotionListener {
 		double[][] isoMatrix = data.getIsometricMatrix();
 		AffineTransform at = g2.getTransform();
 		g2.translate(getWidth()/2, getHeight()/2);
-		//drawAxes(g2);
+		CanvasUtils.drawAxes(g2, isoMatrix);
 		
 		for(int i=0; i<data.getNumShapes(); i++) {
 			//drawShape(g2, data.getShape(i), isoMatrix, i);
 		}
-		g2.setColor(Color.BLUE);
-		//g2.drawLine(99, 33, 240, 80);
-		//g2.drawLine(18, 192, 34, 186);
 		g2.setColor(Color.RED);
-		paintLine(g2, 1, -3, new Point2D(18,192), new Point2D(34,186)); // -6 / 16
-		//paintLine(g2, 1, 3, new Point2D(99,33), new Point2D(240,80));
+		CanvasUtils.paintLine(g2, 1, -3, new Point2D(18,192), new Point2D(34,186)); // -6 / 16
 		g2.setTransform(at);
 		revalidate();
 	}
