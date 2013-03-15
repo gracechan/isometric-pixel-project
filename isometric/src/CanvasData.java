@@ -6,6 +6,7 @@ import geometry.Shape3D;
 import java.util.Vector;
 
 public class CanvasData {
+	private Point2D[] axes_2D;
 	private static final Point3D[] axes_3D = 
 		{new Point3D(1,0,0),
 		new Point3D(0,1,0),
@@ -15,9 +16,8 @@ public class CanvasData {
 		new Point3D(0,0,-1)};
 	
 	private int[] selectedPoint;
-	private Point2D[] axes_2D;
-	
 	Vector<Shape3D> shapes3D;
+	Vector<Point2D> suggestedPoints;
 	IsometricTransform transform;
 	Point3D centre;
 
@@ -37,10 +37,11 @@ public class CanvasData {
 
 	public void addShape(Shape3D s) {
 		shapes3D.add(s);
+		s.populateOriginalSlopes(getIsometricMatrix());
 	}
 
 	public void addShapes(Vector<Shape3D> s) {
-		for(int i=0; i<s.size(); i++) shapes3D.add(s.get(i));
+		for(int i=0; i<s.size(); i++) addShape(s.get(i));
 	}
 
 	public void removeShape(int i) {
@@ -121,5 +122,61 @@ public class CanvasData {
 				dest_3D.z - vertex_3D.z);
 		
 		shapes3D.get(shape).translate(distance_3D.x, distance_3D.y, distance_3D.z);
+	}
+	
+	public void distortVertex(Point2D dest) {
+		int shape = selectedPoint[0], vertex = selectedPoint[1];
+		if(shape == -1 && vertex == -1) return;
+		
+		Point3D vertex_3D = shapes3D.get(shape).getVertex(vertex);
+		Point2D vertex_2D = vertex_3D.transform(getIsometricMatrix());
+		Point3D dest_3D = get3Dequivalent(vertex_2D, dest);
+		
+		Point3D distance3D = new Point3D(
+				dest_3D.x - vertex_3D.x,
+				dest_3D.y - vertex_3D.y,
+				dest_3D.z - vertex_3D.z);
+		shapes3D.get(shape).translateVertex(vertex, distance3D.x, distance3D.y, distance3D.z);
+		
+		Vector<Integer> vertices = shapes3D.get(shape).getAdjacentVertices(vertex);
+		for(int i=0; i < vertices.size(); i++) {
+			int v = vertices.get(i).intValue();
+			Point3D p = shapes3D.get(shape).getVertex(v);
+			Point2D p_2D = p.transform(getIsometricMatrix());
+			
+			if (((int)dest.x - (int)p_2D.y) == 0) {
+				shapes3D.get(shape).setEdgeSlope(v, 1, 0);
+				System.out.println("vertical");
+			} else {
+				double slope = (dest.y - p_2D.y) / (dest.x - p_2D.x);
+				System.out.println("slope: "+slope);
+				if (Math.abs(slope) < 1) System.out.println("inverse slope: "+(1/slope));
+				int slopeY = (Math.abs(slope) < 1) ? 1 : (int)Math.round(slope);
+				int slopeX = (Math.abs(slope) < 1) ? (int)Math.round(1/slope) : 1;
+				//int slopeY = (Math.abs(slope) < 1) ? 1 : (int)slope;
+				//int slopeX = (Math.abs(slope) < 1) ? (int)(1/slope) : 1;
+				System.out.println("approximate slope: "+slopeY+"/"+slopeX);
+				shapes3D.get(shape).setEdgeSlope(v,selectedPoint[1], slopeY, slopeX);
+			}
+		}
+		System.out.println();
+	}
+	
+	public void clearSuggestions() {
+		suggestedPoints.clear();
+	}
+	
+	public void drawSuggestedPoints() {
+		
+	}
+	
+	public void suggestPoints(Point2D dest) {
+		//Vector<Point2D> points = new Vector<Point2D>();
+		// determine different slopes
+		//TODO: what about going from vertical slope? length / 2 ? -length / 2?
+		
+		// calculate intersection between neighbours (neighbours determined using selected point)
+		
+		//return points;
 	}
 }

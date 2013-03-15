@@ -14,9 +14,11 @@ class Canvas extends JPanel
 implements MouseListener, MouseMotionListener {
 	private CanvasData data;
 	private final int vertex_size = 4;
+	private boolean drawSuggestions;
 
 	public Canvas(CanvasData data) {
 		this.data = data;
+		drawSuggestions = false;
 		addListeners();
 		repaint();
 	}
@@ -43,13 +45,13 @@ implements MouseListener, MouseMotionListener {
 		double[][] isoMatrix = data.getIsometricMatrix();
 		AffineTransform at = g2.getTransform();
 		g2.translate(getWidth()/2, getHeight()/2);
-		CanvasUtils.drawAxes(g2, isoMatrix);
+		//CanvasUtils.drawAxes(g2, isoMatrix);
 		
 		for(int i=0; i<data.getNumShapes(); i++) {
-			//drawShape(g2, data.getShape(i), isoMatrix, i);
+			drawShape(g2, data.getShape(i), isoMatrix, i);
 		}
-		g2.setColor(Color.RED);
-		CanvasUtils.paintLine(g2, 1, -3, new Point2D(18,192), new Point2D(34,186)); // -6 / 16
+		//g2.setColor(Color.RED);
+		//CanvasUtils.paintLine(g2, 3, 1, new Point2D(10,10), new Point2D(30,70)); // -6 / 16
 		g2.setTransform(at);
 		revalidate();
 	}
@@ -72,13 +74,11 @@ implements MouseListener, MouseMotionListener {
 		
 		// draw vertices (mostly for picking purposes because it helps to highlight
 		// a selected vertex if we wish to modify its location)
-		g.setColor(Color.black);
-		for(int i=1; i<shape.getNumVertices(); i++) {
+		for(int i=0; i<shape.getNumVertices(); i++) {
 			Point3D p = shape.getVertex(i);
 			Point2D p_2D = p.transform(isoMatrix);
-			
-			g.setColor(data.isVertexSelected(shapeIndex, i) ? Color.red : Color.black);
-			g.fillOval((int)(p_2D.x-(vertex_size/2)), (int)(p_2D.y-(vertex_size/2)), vertex_size, vertex_size);
+			//g.setColor(data.isVertexSelected(shapeIndex, i) ? Color.red : Color.black);
+			//g.fillOval((int)(p_2D.x-(vertex_size/2)), (int)(p_2D.y-(vertex_size/2)), vertex_size, vertex_size);
 		}
 		
 		g.setColor(Color.black);
@@ -88,33 +88,11 @@ implements MouseListener, MouseMotionListener {
 			Point3D p2 = shape.getVertex(edgeInds[1]);
 			Point2D p1_2D = p1.transform(isoMatrix);
 			Point2D p2_2D = p2.transform(isoMatrix);
-			System.out.print("(" + (int)p1_2D.x + ", " + (int)p1_2D.y + ")");
-			System.out.println(" | (" + (int)p2_2D.x + ", " + (int)p2_2D.y + ")");
-			g.drawLine((int)p1_2D.x, (int)p1_2D.y, (int)p2_2D.x, (int)p2_2D.y);
-/*
-			if ((int)p2_2D.x - (int)p1_2D.x != 0) {
-				int dy = (int)p2_2D.y - (int)p1_2D.y;
-				int dx = (int)p2_2D.x - (int)p1_2D.x;
-				double slope = (double) dy / dx;				
-				System.out.print(slope);
-				System.out.print('\t');
-			}
-			if (p2_2D.x - p1_2D.x != 0) {
-				double dy = p2_2D.y - p1_2D.y;
-				double dx = p2_2D.x - p1_2D.x;
-				double slope = dy / dx;				
-				System.out.print(slope);
-				System.out.print('\t');
-			}
-			
-			if ((int)(Math.round(p2_2D.x) - Math.round(p1_2D.x)) != 0) {
-				int dy = (int) (Math.round(p2_2D.y) - Math.round(p1_2D.y));
-				int dx = (int) (Math.round(p2_2D.x) - Math.round(p1_2D.x));
-				double slope = (double) dy / dx;				
-				System.out.print(slope);
-			}
-			System.out.println();
-*/
+			//g.drawLine((int)p1_2D.x, (int)p1_2D.y, (int)p2_2D.x, (int)p2_2D.y);
+			//g.setColor(Color.red);
+			CanvasUtils.paintLine(g, shape.getEdgeSlope(i)[0], shape.getEdgeSlope(i)[1], 
+					new Point2D((int)p1_2D.x,(int)p1_2D.y), 
+					new Point2D((int)p2_2D.x,(int)p2_2D.y)); 
 		}
 	}	
 	
@@ -142,7 +120,9 @@ implements MouseListener, MouseMotionListener {
 
 	public void mousePressed(MouseEvent e) {
 		System.out.println("Canvas.mousePressed");
+		data.clearSuggestions();
 		checkSelected(e.getX() - getWidth()/2, e.getY() - getHeight()/2);
+		data.suggestPoints(new Point2D(e.getX() - getWidth()/2, e.getY() - getHeight()/2));
 		repaint();
 	}
 
@@ -157,7 +137,8 @@ implements MouseListener, MouseMotionListener {
 	}
 
 	public void mouseDragged(MouseEvent e) {
-		data.translateShape(new Point2D(e.getX()-getWidth()/2, e.getY()-getHeight()/2));
+		//data.translateShape(new Point2D(e.getX()-getWidth()/2, e.getY()-getHeight()/2));
+		data.distortVertex(new Point2D(e.getX()-getWidth()/2, e.getY()-getHeight()/2));
 		repaint();
 	}
 
@@ -174,5 +155,11 @@ implements MouseListener, MouseMotionListener {
 
 	public void keyReleased(KeyEvent e) {
 		System.out.println("Canvas.keyReleased");
+	}
+	
+	public void drawSuggestedPoints() {
+		if (!drawSuggestions) return;
+		
+		
 	}
 }
