@@ -7,10 +7,12 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 
 @SuppressWarnings("serial")
 class Canvas extends JPanel
 implements MouseListener, MouseMotionListener {
+	private BufferedImage imgdata;
 	private CanvasData data;
 	private final int vertex_size = 4;
 	private boolean drawSuggestions;
@@ -18,6 +20,7 @@ implements MouseListener, MouseMotionListener {
 	public Canvas(CanvasData data) {
 		this.data = data;
 		drawSuggestions = false;
+		imgdata = new BufferedImage(600, 600, BufferedImage.TYPE_INT_ARGB);
 		addListeners();
 		repaint();
 	}
@@ -32,22 +35,24 @@ implements MouseListener, MouseMotionListener {
 	}
 
 
-	// add all the drawing code here
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
+		getBufferedImage();
+		g2.drawImage(imgdata, null, null);
+	}
+	
+	// add all the drawing code here
+	private void getBufferedImage() {
+		Graphics2D g2 = imgdata.createGraphics(); // (Graphics2D) g;
+		g2.setBackground(Color.white);
+		g2.clearRect(0, 0, getWidth(), getHeight());
 		g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
 							java.awt.RenderingHints.VALUE_ANTIALIAS_OFF );
-
-		setBackground(Color.white);
 
 		double[][] isoMatrix = data.getIsometricMatrix();
 		AffineTransform at = g2.getTransform();
 		g2.translate(getWidth()/2, getHeight()/2);
-		//CanvasUtils.drawAxes(g2, isoMatrix);
-		
-		//int slope[] = {-1, 1};
-		//CanvasUtils.paintLine(g2, slope, new Point2D(18, 3), new Point2D(56, -34));
 		
 		for(int i=0; i<data.getNumShapes(); i++) {
 			drawShape(g2, data.getShape(i), isoMatrix, i);
