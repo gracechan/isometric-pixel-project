@@ -92,19 +92,36 @@ public class Shape3D {
 		return slope;
 	}
 	
+	public int[] getEdgeSlope(int vIndex1, int vIndex2) {
+		int[] slope = {0,0};
+		int eIndex = getEdgeIndex(vIndex1, vIndex2);		
+		if (eIndex < 0) return slope;
+		
+		slope[0] = current_slopes[eIndex][0];
+		slope[1] = current_slopes[eIndex][1];
+		return slope;
+	}
+	
+	public int getEdgeIndex(int vIndex1, int vIndex2) {
+		for (int i=0; i < getNumEdges(); i++) {
+			if ((getEdge(i)[0]==vIndex1 && getEdge(i)[1]==vIndex2) ||
+				(getEdge(i)[0]==vIndex2 && getEdge(i)[1]==vIndex1)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+		
 	public void setEdgeSlope(int edgeIndex, int y, int x) {
 		current_slopes[edgeIndex][0] = y;
 		current_slopes[edgeIndex][1] = x;
 	}
 	
 	public void setEdgeSlope(int vIndex1, int vIndex2, int y, int x) {
-		for (int i=0; i < getNumEdges(); i++) {
-			if ((getEdge(i)[0]==vIndex1 && getEdge(i)[1]==vIndex2) ||
-				(getEdge(i)[0]==vIndex2 && getEdge(i)[1]==vIndex1)) {
-				current_slopes[i][0] = y;
-				current_slopes[i][1] = x;
-			}
-		}
+		int eIndex = getEdgeIndex(vIndex1, vIndex2);
+		if (eIndex < 0) return;
+		current_slopes[eIndex][0] = y;
+		current_slopes[eIndex][1] = x;
 	}
 
 
@@ -148,10 +165,7 @@ public class Shape3D {
 			Point3D p2 = getVertex(edgeInds[1]);
 			Point2D p1_2D = p1.transform(isoMatrix);
 			Point2D p2_2D = p2.transform(isoMatrix);
-			//System.out.print("p1: " + p1_2D.toString()+" ");
-			//System.out.print("p2: " + p2_2D.toString()+" ");
 			if ((int)p2_2D.x - (int)p1_2D.x == 0) {
-				//System.out.println("vertical");
 				original_slopes[i][0] = 1;
 				original_slopes[i][1] = 0;
 				current_slopes[i][0] = 1;
@@ -163,10 +177,8 @@ public class Shape3D {
 				
 				current_slopes[i][0] = original_slopes[i][0];
 				current_slopes[i][1] = original_slopes[i][1];
-				//System.out.println("Slope: "+slope+" "+original_slopes[i][0]+"/"+original_slopes[i][1]);
 			}
 		}
-		//System.out.println();
 	}
 	
 	public Vector<Integer> getAdjacentVertices(int v) {

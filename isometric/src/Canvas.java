@@ -7,7 +7,6 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
-import java.lang.Math;
 
 @SuppressWarnings("serial")
 class Canvas extends JPanel
@@ -47,16 +46,19 @@ implements MouseListener, MouseMotionListener {
 		g2.translate(getWidth()/2, getHeight()/2);
 		//CanvasUtils.drawAxes(g2, isoMatrix);
 		
+		//int slope[] = {-1, 1};
+		//CanvasUtils.paintLine(g2, slope, new Point2D(18, 3), new Point2D(56, -34));
+		
 		for(int i=0; i<data.getNumShapes(); i++) {
 			drawShape(g2, data.getShape(i), isoMatrix, i);
 		}
-		//g2.setColor(Color.RED);
-		//CanvasUtils.paintLine(g2, 3, 1, new Point2D(10,10), new Point2D(30,70)); // -6 / 16
+		
 		g2.setTransform(at);
 		revalidate();
 	}
 	
 	public void drawShape(Graphics2D g, Shape3D shape, double[][] isoMatrix, int shapeIndex) {	
+		System.out.println("draw shape");
 		for(int i=0; i<shape.getNumFaces(); i++) {
 			int[] face = shape.getFace(i);
 			int numVertices = face.length;
@@ -74,26 +76,30 @@ implements MouseListener, MouseMotionListener {
 		
 		// draw vertices (mostly for picking purposes because it helps to highlight
 		// a selected vertex if we wish to modify its location)
+		/*
 		for(int i=0; i<shape.getNumVertices(); i++) {
 			Point3D p = shape.getVertex(i);
 			Point2D p_2D = p.transform(isoMatrix);
-			//g.setColor(data.isVertexSelected(shapeIndex, i) ? Color.red : Color.black);
-			//g.fillOval((int)(p_2D.x-(vertex_size/2)), (int)(p_2D.y-(vertex_size/2)), vertex_size, vertex_size);
+			g.setColor(data.isVertexSelected(shapeIndex, i) ? Color.red : Color.black);
+			g.fillOval((int)(p_2D.x-(vertex_size/2)), (int)(p_2D.y-(vertex_size/2)), vertex_size, vertex_size);
 		}
-		
+		*/
 		g.setColor(Color.black);
+		CanvasUtils.paintShape(g, shape, isoMatrix);
+		
+		/*
 		for(int i=0; i<shape.getNumEdges(); i++) {
 			int[] edgeInds = shape.getEdge(i);
 			Point3D p1 = shape.getVertex(edgeInds[0]);
 			Point3D p2 = shape.getVertex(edgeInds[1]);
 			Point2D p1_2D = p1.transform(isoMatrix);
 			Point2D p2_2D = p2.transform(isoMatrix);
-			//g.drawLine((int)p1_2D.x, (int)p1_2D.y, (int)p2_2D.x, (int)p2_2D.y);
-			//g.setColor(Color.red);
-			CanvasUtils.paintLine(g, shape.getEdgeSlope(i)[0], shape.getEdgeSlope(i)[1], 
+			CanvasUtils.paintLine(g, shape.getEdgeSlope(i), 
 					new Point2D((int)p1_2D.x,(int)p1_2D.y), 
 					new Point2D((int)p2_2D.x,(int)p2_2D.y)); 
 		}
+		*/
+		
 	}	
 	
 	// Checks to see if we have clicked on a vertex
@@ -158,8 +164,6 @@ implements MouseListener, MouseMotionListener {
 	}
 	
 	public void drawSuggestedPoints() {
-		if (!drawSuggestions) return;
-		
-		
+		if (!drawSuggestions) return;		
 	}
 }

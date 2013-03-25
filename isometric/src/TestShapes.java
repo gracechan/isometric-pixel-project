@@ -7,7 +7,7 @@ import java.awt.Color;
 public class TestShapes {
 	public static Vector<Shape3D> robot() {
 		Vector<Shape3D> shapes = new Vector<Shape3D>();
-		Shape3D body = new Shape3D.Box(new Point3D(-40,-40,-40), new Point3D(40,40,40));
+		Shape3D body = new Shape3D.Box(new Point3D(-40,-40,-40), new Point3D(40,40,40), new Color(255,0,0,25));
 		shapes.add(body);
 		/*
 		Shape3D head = new Shape3D.Box(new Point3D(-15,-15,40), new Point3D(15,15,70), new Color(0, 255, 0, 25));

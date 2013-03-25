@@ -39,6 +39,12 @@ public class Point2D {
 		y += ty;
 	}
 	
+	public Point2D truncate() {
+		Point2D p = this.clone();
+		p.x = (int)p.x;
+		p.y = (int)p.y;
+		return p;
+	}
 	
 	public static Point2D findCoefficients(Point2D axis1, Point2D axis2, Point2D location) {
 		double x = 0, y = 0;

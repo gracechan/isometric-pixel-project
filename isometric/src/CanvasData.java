@@ -23,6 +23,7 @@ public class CanvasData {
 
 	public CanvasData() {
 		shapes3D = new Vector<Shape3D>();
+		suggestedPoints = new Vector<Point2D>();
 		transform = new IsometricTransform(-1.0/3.0, 1.0/2.0);
 		centre = new Point3D(0,0,0);
 		selectedPoint = new int[2];
@@ -36,8 +37,8 @@ public class CanvasData {
 	}
 
 	public void addShape(Shape3D s) {
-		shapes3D.add(s);
 		s.populateOriginalSlopes(getIsometricMatrix());
+		shapes3D.add(s);
 	}
 
 	public void addShapes(Vector<Shape3D> s) {
@@ -146,20 +147,13 @@ public class CanvasData {
 			
 			if (((int)dest.x - (int)p_2D.y) == 0) {
 				shapes3D.get(shape).setEdgeSlope(v, 1, 0);
-				System.out.println("vertical");
 			} else {
 				double slope = (dest.y - p_2D.y) / (dest.x - p_2D.x);
-				System.out.println("slope: "+slope);
-				if (Math.abs(slope) < 1) System.out.println("inverse slope: "+(1/slope));
 				int slopeY = (Math.abs(slope) < 1) ? 1 : (int)Math.round(slope);
 				int slopeX = (Math.abs(slope) < 1) ? (int)Math.round(1/slope) : 1;
-				//int slopeY = (Math.abs(slope) < 1) ? 1 : (int)slope;
-				//int slopeX = (Math.abs(slope) < 1) ? (int)(1/slope) : 1;
-				System.out.println("approximate slope: "+slopeY+"/"+slopeX);
 				shapes3D.get(shape).setEdgeSlope(v,selectedPoint[1], slopeY, slopeX);
 			}
 		}
-		System.out.println();
 	}
 	
 	public void clearSuggestions() {
@@ -171,11 +165,20 @@ public class CanvasData {
 	}
 	
 	public void suggestPoints(Point2D dest) {
-		//Vector<Point2D> points = new Vector<Point2D>();
-		// determine different slopes
 		//TODO: what about going from vertical slope? length / 2 ? -length / 2?
+		int shape = selectedPoint[0], vertex = selectedPoint[1];
+		if(shape == -1 && vertex == -1) return;
 		
 		// calculate intersection between neighbours (neighbours determined using selected point)
+		Vector<Integer> adjVertices = shapes3D.get(shape).getAdjacentVertices(vertex);
+		int b[] = new int[adjVertices.size()];
+		int m[][] = new int[adjVertices.size()][2];
+		
+		for(int i=0; i < b.length; i++) {
+			m[i] = shapes3D.get(shape).getEdgeSlope(vertex, adjVertices.get(i).intValue());
+			//b[i] = shapes3D.get(shape).getVertex(vertex).y - m[i][]
+		}
+		
 		
 		//return points;
 	}
