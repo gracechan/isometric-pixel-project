@@ -20,7 +20,6 @@ implements MouseListener, MouseMotionListener {
 	public Canvas(CanvasData data) {
 		this.data = data;
 		drawSuggestions = false;
-		imgdata = new BufferedImage(600, 600, BufferedImage.TYPE_INT_ARGB);
 		addListeners();
 		repaint();
 	}
@@ -34,9 +33,9 @@ implements MouseListener, MouseMotionListener {
 		return new Dimension(getWidth(), getHeight());
 	}
 
-
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
+		imgdata = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2 = (Graphics2D) g;
 		getBufferedImage();
 		g2.drawImage(imgdata, null, null);
@@ -90,21 +89,7 @@ implements MouseListener, MouseMotionListener {
 		}
 		*/
 		g.setColor(Color.black);
-		CanvasUtils.paintShape(g, shape, isoMatrix);
-		
-		/*
-		for(int i=0; i<shape.getNumEdges(); i++) {
-			int[] edgeInds = shape.getEdge(i);
-			Point3D p1 = shape.getVertex(edgeInds[0]);
-			Point3D p2 = shape.getVertex(edgeInds[1]);
-			Point2D p1_2D = p1.transform(isoMatrix);
-			Point2D p2_2D = p2.transform(isoMatrix);
-			CanvasUtils.paintLine(g, shape.getEdgeSlope(i), 
-					new Point2D((int)p1_2D.x,(int)p1_2D.y), 
-					new Point2D((int)p2_2D.x,(int)p2_2D.y)); 
-		}
-		*/
-		
+		CanvasUtils.paintShape(imgdata, g, shape, isoMatrix);	
 	}	
 	
 	// Checks to see if we have clicked on a vertex
