@@ -11,9 +11,8 @@ public class Shape3D {
 	Vector<boolean[]> adjmatrix;
 	int[][] original_slopes;
 	int[][] current_slopes;
+	Point2D[] vertices_2D;
 	Color colour;
-	protected double minX, minY, minZ;
-	protected double maxX, maxY, maxZ;
 	private boolean populated;
 
 	public Shape3D() {
@@ -43,11 +42,11 @@ public class Shape3D {
 		colour = c;
 	}
 
-	public void addVertex(Point3D v) {
+	protected void addVertex(Point3D v) {
 		vertices.add(v.clone());
 	}
 
-	public void addEdge(int[] e) {
+	protected void addEdge(int[] e) {
 		int[] e_ = {e[0], e[1]};
 		edges.add(e_);
 	}
@@ -133,6 +132,10 @@ public class Shape3D {
 		return vertices.get(i).clone();
 	}
 	
+	public Point2D getVertex2D(int i) {
+		return vertices_2D[i].clone();		
+	}
+	
 	public int getNumFaces() {
 		return (faces==null) ? 0 : faces.size();
 	}
@@ -155,10 +158,13 @@ public class Shape3D {
 	}
 	
 	public void populateOriginalSlopes(double[][] isoMatrix) {
+		// also populates the 2D versions of each point.
 		if (populated) return;
 		populated = true;
 		current_slopes = new int[getNumEdges()][2];
 		original_slopes = new int[getNumEdges()][2];
+		vertices_2D = new Point2D[getNumVertices()];
+		
 		for(int i=0; i<getNumEdges(); i++) {
 			int[] edgeInds = getEdge(i);
 			Point3D p1 = getVertex(edgeInds[0]);
@@ -169,7 +175,7 @@ public class Shape3D {
 				original_slopes[i][0] = 1;
 				original_slopes[i][1] = 0;
 				current_slopes[i][0] = 1;
-				original_slopes[i][1] = 0;
+				current_slopes[i][1] = 0;
 			} else {
 				double slope = (p2_2D.y - p1_2D.y) / (p2_2D.x - p1_2D.x);
 				original_slopes[i][0] = (Math.abs(slope) > 1) ? (int)Math.round(slope) : 1;
@@ -178,6 +184,10 @@ public class Shape3D {
 				current_slopes[i][0] = original_slopes[i][0];
 				current_slopes[i][1] = original_slopes[i][1];
 			}
+		}
+		
+		for(int i=0; i<getNumVertices(); i++) {
+			vertices_2D[i] = getVertex(i).transform(isoMatrix).truncate();			
 		}
 	}
 	

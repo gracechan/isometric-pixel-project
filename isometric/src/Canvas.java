@@ -39,11 +39,18 @@ implements MouseListener, MouseMotionListener {
 		Graphics2D g2 = (Graphics2D) g;
 		getBufferedImage();
 		g2.drawImage(imgdata, null, null);
+		Color c = Color.black;
+		Color r = Color.red;
+		System.out.println("Black: "+c.toString());
+		System.out.println("Red: "+r.toString());
+		
+		Color ex = new Color(imgdata.getRGB(getWidth()/2-56, getHeight()/2+34), true);
+		System.out.println("pixel (-56,34): "+ex.toString());
 	}
 	
 	// add all the drawing code here
 	private void getBufferedImage() {
-		Graphics2D g2 = imgdata.createGraphics(); // (Graphics2D) g;
+		Graphics2D g2 = imgdata.createGraphics();
 		g2.setBackground(Color.white);
 		g2.clearRect(0, 0, getWidth(), getHeight());
 		g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
