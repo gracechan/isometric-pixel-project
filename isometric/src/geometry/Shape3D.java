@@ -5,6 +5,9 @@ import java.awt.Color;
 import java.util.Vector;
 
 public class Shape3D {
+	/*
+	 * adjmatrix: tells us which vertices are 
+	 */
 	Vector<Point3D> vertices;
 	Vector<int[]> edges;
 	Vector<int[]> faces;

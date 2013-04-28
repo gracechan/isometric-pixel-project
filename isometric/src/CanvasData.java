@@ -6,6 +6,16 @@ import geometry.Shape3D;
 import java.util.Vector;
 
 public class CanvasData {
+	/*
+	 * axes_2D: points that are on the 2D axes. The 2D axes of the image are determined by applying 
+	 * a transform to the 3D points (axes_3D) which represent the x,y,z axes.
+	 * selectedPoint: the point that was "selected" (i.e. clicked on). It is determined by:
+	 *  [0]: index into the shapes3D vector
+	 *  [1]: index into the shape's vertices vector
+	 * suggestedPoints: unused - for helping to suggest points that would be good to snap to for ideal corners
+	 * transform: the transform used to determine the 2D equivalents of the original 3D points
+	 * centre: the center of the canvas
+	 */
 	private Point2D[] axes_2D;
 	private static final Point3D[] axes_3D = 
 		{new Point3D(1,0,0),
@@ -84,38 +94,38 @@ public class CanvasData {
 		return selectedPoint[0] == shape;
 	}
 	
-	public Point3D get3Dequivalent(Point2D origin, Point2D dest) {
-		Point2D coeffs_vertex, coeffs_dest;
-		
+	/*
+	 * Finds out which two axes the point p is in between, and finds out which linear combination
+	 * of the two axes gives us the coordinates of the point p. Then we use these coefficients to 
+	 * determine the 3D point it corresponds to.
+	 */
+	public Point3D get3Dequivalent(Point2D p) {
+		Point2D coeffs_dest;
 		for(int i=0; i < axes_2D.length; i++) {
-			// find out distance from origin
-			coeffs_vertex = 
-					Point2D.findCoefficients(axes_2D[i], axes_2D[(i+1)%axes_2D.length], origin);
-			
+			// find out distance from origin	
 			coeffs_dest = 
-					Point2D.findCoefficients(axes_2D[i], axes_2D[(i+1)%axes_2D.length], dest);	
+					Point2D.findCoefficients(axes_2D[i], axes_2D[(i+1)%axes_2D.length], p);	
 			
-			if (coeffs_vertex.x >= 0 && coeffs_vertex.y >= 0) {					
+			if (coeffs_dest.x >= 0 && coeffs_dest.y >= 0) {					
 				// find out what point is in 3D
 				Point3D dest_3D = new Point3D(
 						axes_3D[i].x * coeffs_dest.x + axes_3D[(i+1)%axes_2D.length].x * coeffs_dest.y,
 						axes_3D[i].y * coeffs_dest.x + axes_3D[(i+1)%axes_2D.length].y * coeffs_dest.y,
 						axes_3D[i].z * coeffs_dest.x + axes_3D[(i+1)%axes_2D.length].z * coeffs_dest.y);
-				
 				return dest_3D;
 			}
 		}
-		
 		return null;
 	}
 	
+	/*
+	 * Move whole shape around the canvas
+	 */
 	public void translateShape(Point2D dest) {
 		int shape = selectedPoint[0], vertex = selectedPoint[1];
 		if (shape == -1 && vertex == -1) return;
-		
 		Point3D vertex_3D = shapes3D.get(shape).getVertex(vertex);
-		Point2D vertex_2D = vertex_3D.transform(getIsometricMatrix());
-		Point3D dest_3D = get3Dequivalent(vertex_2D, dest);
+		Point3D dest_3D = get3Dequivalent(dest);
 
 		Point3D distance_3D = new Point3D(
 				dest_3D.x - vertex_3D.x,
@@ -125,13 +135,15 @@ public class CanvasData {
 		shapes3D.get(shape).translate(distance_3D.x, distance_3D.y, distance_3D.z);
 	}
 	
+	/*
+	 * Distort one vertex of an object
+	 */
 	public void distortVertex(Point2D dest) {
 		int shape = selectedPoint[0], vertex = selectedPoint[1];
 		if(shape == -1 && vertex == -1) return;
 		
 		Point3D vertex_3D = shapes3D.get(shape).getVertex(vertex);
-		Point2D vertex_2D = vertex_3D.transform(getIsometricMatrix());
-		Point3D dest_3D = get3Dequivalent(vertex_2D, dest);
+		Point3D dest_3D = get3Dequivalent(dest);
 		
 		Point3D distance3D = new Point3D(
 				dest_3D.x - vertex_3D.x,
@@ -140,6 +152,8 @@ public class CanvasData {
 		shapes3D.get(shape).translateVertex(vertex, distance3D.x, distance3D.y, distance3D.z);
 		
 		Vector<Integer> vertices = shapes3D.get(shape).getAdjacentVertices(vertex);
+		
+		// update the slopes of edges from the distorted point that connect to adjacent vertices.
 		for(int i=0; i < vertices.size(); i++) {
 			int v = vertices.get(i).intValue();
 			Point3D p = shapes3D.get(shape).getVertex(v);
@@ -156,16 +170,17 @@ public class CanvasData {
 		}
 	}
 	
+	/*
+	 * The following methods were supposed to be used for suggested points for users to snap to
+	 * if they wanted to distort a vertex but maintain nice edges. This proved to be a bit difficult
+	 * for points that are at the intersection of 3 edges since they might not all meet at one nice point.
+	 * Might try and figure out a good way to approximate later.
+	 */
 	public void clearSuggestions() {
 		suggestedPoints.clear();
 	}
 	
-	public void drawSuggestedPoints() {
-		
-	}
-	
 	public void suggestPoints(Point2D dest) {
-		//TODO: what about going from vertical slope? length / 2 ? -length / 2?
 		int shape = selectedPoint[0], vertex = selectedPoint[1];
 		if(shape == -1 && vertex == -1) return;
 		
@@ -176,10 +191,7 @@ public class CanvasData {
 		
 		for(int i=0; i < b.length; i++) {
 			m[i] = shapes3D.get(shape).getEdgeSlope(vertex, adjVertices.get(i).intValue());
-			//b[i] = shapes3D.get(shape).getVertex(vertex).y - m[i][]
 		}
-		
-		
 		//return points;
 	}
 }

@@ -12,14 +12,18 @@ import java.awt.image.BufferedImage;
 @SuppressWarnings("serial")
 class Canvas extends JPanel
 implements MouseListener, MouseMotionListener {
+	/*
+	 * imgdata: stores the image to draw on screen
+	 * data: stores the 3D representation of the shapes
+	 * vertex_size: diameter of the vertex being drawn
+	 */
 	private BufferedImage imgdata;
 	private CanvasData data;
 	private final int vertex_size = 4;
-	private boolean drawSuggestions;
+	private CanvasActions op;
 
 	public Canvas(CanvasData data) {
 		this.data = data;
-		drawSuggestions = false;
 		addListeners();
 		repaint();
 	}
@@ -39,13 +43,6 @@ implements MouseListener, MouseMotionListener {
 		Graphics2D g2 = (Graphics2D) g;
 		getBufferedImage();
 		g2.drawImage(imgdata, null, null);
-		Color c = Color.black;
-		Color r = Color.red;
-		System.out.println("Black: "+c.toString());
-		System.out.println("Red: "+r.toString());
-		
-		Color ex = new Color(imgdata.getRGB(getWidth()/2-56, getHeight()/2+34), true);
-		System.out.println("pixel (-56,34): "+ex.toString());
 	}
 	
 	// add all the drawing code here
@@ -69,7 +66,6 @@ implements MouseListener, MouseMotionListener {
 	}
 	
 	public void drawShape(Graphics2D g, Shape3D shape, double[][] isoMatrix, int shapeIndex) {	
-		System.out.println("draw shape");
 		for(int i=0; i<shape.getNumFaces(); i++) {
 			int[] face = shape.getFace(i);
 			int numVertices = face.length;
@@ -87,14 +83,13 @@ implements MouseListener, MouseMotionListener {
 		
 		// draw vertices (mostly for picking purposes because it helps to highlight
 		// a selected vertex if we wish to modify its location)
-		/*
 		for(int i=0; i<shape.getNumVertices(); i++) {
 			Point3D p = shape.getVertex(i);
 			Point2D p_2D = p.transform(isoMatrix);
 			g.setColor(data.isVertexSelected(shapeIndex, i) ? Color.red : Color.black);
 			g.fillOval((int)(p_2D.x-(vertex_size/2)), (int)(p_2D.y-(vertex_size/2)), vertex_size, vertex_size);
 		}
-		*/
+		
 		g.setColor(Color.black);
 		CanvasUtils.paintShape(imgdata, g, shape, isoMatrix);	
 	}	
@@ -117,12 +112,14 @@ implements MouseListener, MouseMotionListener {
 		}
 	}
 	
+	public void setOperation(CanvasActions c) {
+		op = c;		
+	}
+	
 	public void mouseClicked(MouseEvent e) {
-		System.out.println("Canvas.mouseClicked");
 	}
 
 	public void mousePressed(MouseEvent e) {
-		System.out.println("Canvas.mousePressed");
 		data.clearSuggestions();
 		checkSelected(e.getX() - getWidth()/2, e.getY() - getHeight()/2);
 		data.suggestPoints(new Point2D(e.getX() - getWidth()/2, e.getY() - getHeight()/2));
@@ -130,7 +127,6 @@ implements MouseListener, MouseMotionListener {
 	}
 
 	public void mouseReleased(MouseEvent e) {
-		System.out.println("Canvas.mouseReleased");
 	}
 
 	public void mouseEntered(MouseEvent e) {
@@ -139,9 +135,20 @@ implements MouseListener, MouseMotionListener {
 	public void mouseExited(MouseEvent e) {
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.awt.event.MouseMotionListener#mouseDragged(java.awt.event.MouseEvent)
+	 * For this particular event, we distort vertices (i.e. we can drag them around the screen,
+	 *  and alter the shape of the cube). 
+	 *  translateShape is if you just want to move the whole object.
+	 */
 	public void mouseDragged(MouseEvent e) {
-		//data.translateShape(new Point2D(e.getX()-getWidth()/2, e.getY()-getHeight()/2));
-		data.distortVertex(new Point2D(e.getX()-getWidth()/2, e.getY()-getHeight()/2));
+		switch(op) {
+          case TRANSLATE_OBJECT:
+        	data.translateShape(new Point2D(e.getX()-getWidth()/2, e.getY()-getHeight()/2));
+		  case DISTORT_VERTEX:
+			data.distortVertex(new Point2D(e.getX()-getWidth()/2, e.getY()-getHeight()/2));    
+		}		
 		repaint();
 	}
 
@@ -149,18 +156,11 @@ implements MouseListener, MouseMotionListener {
 	}
 
 	public void keyTyped(KeyEvent e) {	
-		System.out.println("Canvas.keyTyped");
 	}
 
 	public void keyPressed(KeyEvent e) {
-		System.out.println("Canvas.keyPressed");
 	}
 
 	public void keyReleased(KeyEvent e) {
-		System.out.println("Canvas.keyReleased");
-	}
-	
-	public void drawSuggestedPoints() {
-		if (!drawSuggestions) return;		
 	}
 }

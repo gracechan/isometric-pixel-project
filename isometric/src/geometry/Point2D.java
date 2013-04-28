@@ -46,6 +46,10 @@ public class Point2D {
 		return p;
 	}
 	
+	/*
+	 * For axis1, axis2, location, which are all points, find (a,b) such that:
+	 * (a*axis1.x + b*axis2.x, a*axis1.y + b*axis2.y) = (location.x, location.y)
+	 */
 	public static Point2D findCoefficients(Point2D axis1, Point2D axis2, Point2D location) {
 		double x = 0, y = 0;
 		y = (location.x * axis1.y - location.y * axis1.x) / (axis2.x * axis1.y - axis1.x * axis2.y);

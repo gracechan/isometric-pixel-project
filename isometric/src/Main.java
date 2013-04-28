@@ -9,14 +9,15 @@ import java.awt.event.WindowEvent;
 import javax.swing.*;
 
 @SuppressWarnings("serial")
-public class Main
-extends JFrame {
+public class Main extends JFrame {
 	private CanvasData canvasData;
 	private Canvas canvas;
+	private static final int width = 600;
+	private static final int height = 600;
 
 	public Main() {
 		super("Isometric Tool");
-		setSize(600, 600);
+		setSize(width, height);
 
 		// canvas
 		canvasData = new CanvasData();
@@ -29,7 +30,9 @@ extends JFrame {
 		// menu 
 		JMenuBar mb = new JMenuBar(); 
 		FileMenu fileMenu = new FileMenu(canvas);
+		ActionsMenu actionsMenu = new ActionsMenu(canvas);
 		mb.add(fileMenu); 
+		mb.add(actionsMenu);
 		setJMenuBar(mb);
 
 		// key listeners
