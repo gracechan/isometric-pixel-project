@@ -39,6 +39,8 @@ public class Point2D {
 		y += ty;
 	}
 	
+	// returns an integer version of the point through truncation 
+	// (the fields are still technically doubles though o.o)
 	public Point2D truncate() {
 		Point2D p = this.clone();
 		p.x = (int)p.x;

@@ -6,23 +6,35 @@ import java.util.Vector;
 
 public class Shape3D {
 	/*
-	 * adjmatrix: tells us which vertices are 
+	 * adjmatrix: tells us which vertices are connected to each other using booleans. Vertices are indexed
+	 * using their index in the "vertices" variable
+	 *  e.g. if vertex 1 and 3 are are connected by an edge, then adjmatrix[1][3] = true, otherwise false.
+	 * populated: tells us whether we've populated the slopes arrays or not.
+	 * original_slopes: the slopes of the edges in 2D before distortion.
+	 *  the slope is represented as a int array of size 2: [0]rise/[1]run. A vertical edge is represented with
+	 *  [0]=1, [1]=0. 
+	 * current_slopes: the slopes of the edges in 2D as they are currently are
+	 * 
+	 * I'm hoping to encapsulate a lot of the 2D parts of this shape object into the actual 2D object.
+	 * 
+	 * TODO: find a better way to organize all these constructors. they suck :(
 	 */
 	Vector<Point3D> vertices;
 	Vector<int[]> edges;
 	Vector<int[]> faces;
-	Vector<boolean[]> adjmatrix;
+	Color colour;
+	
+	Vector<Vector<Boolean>> adjmatrix;
 	int[][] original_slopes;
 	int[][] current_slopes;
 	Point2D[] vertices_2D;
-	Color colour;
 	private boolean populated;
 
 	public Shape3D() {
 		vertices = new Vector<Point3D>();
 		edges = new Vector<int[]>();
 		faces = new Vector<int[]>();
-		adjmatrix = new Vector<boolean[]>();
+		adjmatrix = new Vector<Vector<Boolean>>();
 		colour = new Color(255, 0, 0, 25);
 		populated = false;
 	}
@@ -37,7 +49,7 @@ public class Shape3D {
 		for(int i=0; i<vs.length; i++) addVertex(vs[i]);
 		for(int i=0; i<es.length; i++) addEdge(es[i]);
 		for(int i=0; i<fs.length; i++) addFace(fs[i], fs[i].length);
-		for(int i=0; i<adj.length;i++) addAdjInfo(adj[i], adj[i].length);
+		for(int i=0; i<adj.length;i++) addAdjInfo(adj[i]);
 	}
 	
 	public Shape3D(Point3D[] vs, int[][] es, int[][] fs, boolean[][] adj, Color c) {
@@ -46,7 +58,14 @@ public class Shape3D {
 	}
 
 	protected void addVertex(Point3D v) {
-		vertices.add(v.clone());
+		// for all when we add a vertex, we need to increase the adjacency matrix to accomodate for this
+		for(int i=0; i<adjmatrix.size(); i++) {
+			adjmatrix.get(i).add(new Boolean(false));
+		}
+		vertices.add(v.clone());		
+		boolean a[] = new boolean[getNumVertices()];	
+		for(int i=0; i<a.length; i++) a[i] = false;
+		addAdjInfo(a);
 	}
 
 	protected void addEdge(int[] e) {
@@ -62,10 +81,11 @@ public class Shape3D {
 		faces.add(f_);
 	}
 	
-	protected void addAdjInfo(boolean[] a, int numVertices) {
-		boolean[] a_ = new boolean[numVertices];
-		for(int i=0; i<numVertices; i++) {
-			a_[i] = a[i];
+	protected void addAdjInfo(boolean[] a) {
+		Vector<Boolean> a_ = new Vector<Boolean>();
+		for(int i=0; i<a.length; i++) {
+			//a_[i] = a[i];
+			a_.add(new Boolean(a[i]));
 		}
 		adjmatrix.add(a_);
 	}
@@ -196,8 +216,8 @@ public class Shape3D {
 	
 	public Vector<Integer> getAdjacentVertices(int v) {
 		Vector<Integer> result = new Vector<Integer>();
-		for(int i=0; i < adjmatrix.get(v).length; i++) {
-			if (adjmatrix.get(v)[i]) result.add(new Integer(i));
+		for(int i=0; i < adjmatrix.get(v).size(); i++) {
+			if (adjmatrix.get(v).get(i)) result.add(new Integer(i));
 		}
 		return result;
 	}
@@ -251,7 +271,7 @@ public class Shape3D {
 			
 			for(int i=0; i<es.length; i++) addEdge(es[i]);
 			for(int i=0; i<fs.length; i++) addFace(fs[i], 4);
-			for(int i=0; i<adjmatrix.length;i++) addAdjInfo(adjmatrix[i], adjmatrix[i].length);
+			for(int i=0; i<adjmatrix.length;i++) addAdjInfo(adjmatrix[i]);
 		}
 		
 		public Box(Point3D from, Point3D to, Color c) {

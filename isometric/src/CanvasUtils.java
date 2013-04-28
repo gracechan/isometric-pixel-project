@@ -104,9 +104,13 @@ class CanvasUtils {
 			for(int j=0; j<adjVertices.size(); j++) {
 				Point2D p2 = shape.getVertex(adjVertices.get(j).intValue()).transform(isoMatrix);
 				int eIndex = shape.getEdgeIndex(i, adjVertices.get(j).intValue());
-				int[] slope = shape.getEdgeSlope(eIndex);				
+				int[] slope = shape.getEdgeSlope(eIndex);	
+				
+				// if we've already drawn this edge, do not redraw
 				if (isDrawn[eIndex]) continue;
 				isDrawn[eIndex] = true;
+				
+				// if we have a vertical edge, just draw between the two points to avoid jaggy verticals
 				if (slope[1] == 0) {
 					paintLine(g2, slope, p1, p2);
 					continue;
@@ -134,7 +138,7 @@ class CanvasUtils {
 	
 	/*
 	 * This is a cost function to determine how "nice" a corner looks. We do this by drawing
-	 * two images: one with 
+	 * two images: one with how it will actually look like drawing 
 	 */
 	public static int calculateCost(Shape3D shape, Point2D pStart, int vIndex,
 			boolean[]isDrawn, double[][] isoMatrix) {
@@ -230,7 +234,6 @@ class CanvasUtils {
 		
 		// if we predict that the slope won't allow for the points to connect,
 		// then we just draw a regular line
-		Point2D p1t = p1.truncate(), p2t = p2.truncate();
 		if (span < 3 && Math.abs(lineError) > span) {
 			g2.setColor(Color.red);
 			g2.drawLine((int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
