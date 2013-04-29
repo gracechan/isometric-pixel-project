@@ -44,32 +44,34 @@ public class Shape3D {
 		colour = c;
 	}
 
-	public Shape3D(Point3D[] vs, int[][] es, int[][] fs, boolean[][] adj) {
+	public Shape3D(Point3D[] vs, int[][] es, int[][] fs) {
 		this();
 		for(int i=0; i<vs.length; i++) addVertex(vs[i]);
 		for(int i=0; i<es.length; i++) addEdge(es[i]);
 		for(int i=0; i<fs.length; i++) addFace(fs[i], fs[i].length);
-		for(int i=0; i<adj.length;i++) addAdjInfo(adj[i]);
 	}
 	
-	public Shape3D(Point3D[] vs, int[][] es, int[][] fs, boolean[][] adj, Color c) {
-		this(vs, es, fs, adj);
+	public Shape3D(Point3D[] vs, int[][] es, int[][] fs, Color c) {
+		this(vs, es, fs);
 		colour = c;
 	}
 
 	protected void addVertex(Point3D v) {
-		// for all when we add a vertex, we need to increase the adjacency matrix to accomodate for this
+		// for all when we add a vertex, we need to increase the adjacency matrix to accommodate for this
 		for(int i=0; i<adjmatrix.size(); i++) {
 			adjmatrix.get(i).add(new Boolean(false));
 		}
 		vertices.add(v.clone());		
-		boolean a[] = new boolean[getNumVertices()];	
-		for(int i=0; i<a.length; i++) a[i] = false;
-		addAdjInfo(a);
+		Vector<Boolean> a = new Vector<Boolean>();	
+		for(int i=0; i<getNumVertices(); i++) a.add(new Boolean(false));
+		adjmatrix.add(a);
 	}
 
 	protected void addEdge(int[] e) {
 		int[] e_ = {e[0], e[1]};
+		// update adjacency matrix
+		adjmatrix.get(e[0]).set(e[1], new Boolean(true));
+		adjmatrix.get(e[1]).set(e[0], new Boolean(true));
 		edges.add(e_);
 	}
 	
@@ -80,16 +82,7 @@ public class Shape3D {
 		}
 		faces.add(f_);
 	}
-	
-	protected void addAdjInfo(boolean[] a) {
-		Vector<Boolean> a_ = new Vector<Boolean>();
-		for(int i=0; i<a.length; i++) {
-			//a_[i] = a[i];
-			a_.add(new Boolean(a[i]));
-		}
-		adjmatrix.add(a_);
-	}
-	
+
 	public void translateVertex(int i, double tx, double ty, double tz) {
 		vertices.get(i).translate(tx, ty, tz);		
 	}
@@ -217,7 +210,9 @@ public class Shape3D {
 	public Vector<Integer> getAdjacentVertices(int v) {
 		Vector<Integer> result = new Vector<Integer>();
 		for(int i=0; i < adjmatrix.get(v).size(); i++) {
-			if (adjmatrix.get(v).get(i)) result.add(new Integer(i));
+			if (adjmatrix.get(v).get(i).booleanValue()) {
+				result.add(new Integer(i));
+			}
 		}
 		return result;
 	}
@@ -241,23 +236,13 @@ public class Shape3D {
 		private static final int[][] fs = 
 			{{0,1,2,3},{4,5,6,7},{0,1,5,4},
 			 {2,6,7,3},{2,6,5,1},{0,3,7,4}};
-		
-		private static final boolean[][] adjmatrix =
-			{{false, true, false, true, true, false, false, false},
-			 {true, false, true, false, false, true, false, false},
-			 {false, true, false, true, false, false, true, false},
-			 {true, false, true, false, false, false, false, true},
-			 {true, false, false, false, false, true, false, true},
-			 {false, true, false, false, true, false, true, false},
-			 {false, false, true, false, false, true, false, true},
-			 {false, false, false, true, true, false, true, false}};
-		
+
 		public Box() {			
-			super(vs, es, fs, adjmatrix);			
+			super(vs, es, fs);			
 		}
 		
 		public Box(Color c) {			
-			super(vs, es, fs, adjmatrix, c);			
+			super(vs, es, fs, c);			
 		}
 		
 		public Box(Point3D from, Point3D to) {
@@ -271,13 +256,11 @@ public class Shape3D {
 			
 			for(int i=0; i<es.length; i++) addEdge(es[i]);
 			for(int i=0; i<fs.length; i++) addFace(fs[i], 4);
-			for(int i=0; i<adjmatrix.length;i++) addAdjInfo(adjmatrix[i]);
 		}
 		
 		public Box(Point3D from, Point3D to, Color c) {
 			this(from, to);
 			changeColor(c);
 		}
-
 	}
 }

@@ -5,10 +5,11 @@ import geometry.Shape3D;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-//import java.io.File;
-//import java.io.IOException;
 import java.util.Vector;
-//import javax.imageio.ImageIO;
+
+/*
+ * I apologize in advance: this class is kind of a mess, it contains all my line drawing stuff.
+ */
 
 class CanvasUtils {	
 	private static final int sample_size = 5;
@@ -57,8 +58,7 @@ class CanvasUtils {
 			Point2D p1 = shape.getVertex(i).transform(isoMatrix);
 			/*
 			 * minDiffs: stores the associated error with drawing the pixels surrounding p1
-			 *  
-			 *  The one producing the 
+			 *  The one producing the least amount of error will be the point that will be drawn from.
 			 */
 			int minDiffs[][] = new int[9][adjVertices.size()];
 			Point2D bestDrawRef = new Point2D(p1.x-1, p1.y-1);
@@ -120,25 +120,35 @@ class CanvasUtils {
 		} // for every vertex
 	}
 	
+	/*
+	 * Calculates how far away p2 is from a line drawn from p1 with a slope of 1/n (or n)
+	 */
 	private static int getLineError(Point2D p1, Point2D p2, int[] slope) {
 		p1 = p1.truncate(); p2 = p2.truncate();
 		if(slope[0] == 1) {
 			int height = (int) Math.abs(p2.y - p1.y);
 			int width = (height+1) * Math.abs(slope[1]);
 			int closest = (p1.x >= p2.x) ? (int)(p1.x - width) : (int)(p1.x + width);
-			return (int)(p2.x - closest);
+			return (p1.x <= p2.x) ? (int)(p2.x - closest) : -(int)(p2.x - closest);
 		} else if(slope[1] == 1) {
 			int width = (int) Math.abs(p2.x - p1.x);
 			int height = (width+1) * Math.abs(slope[0]);
 			int closest = (p1.y >= p2.y) ? (int)(p1.y - height) : (int)(p1.y + height);
-			return (int)(p2.y - closest);
+			return (p1.y <= p2.y) ? (int)(p2.y - closest) : -(int)(p2.y - closest);
 		}
 		return 0;	
 	}
 	
 	/*
 	 * This is a cost function to determine how "nice" a corner looks. We do this by drawing
-	 * two images: one with how it will actually look like drawing 
+	 * two images: one with how it will actually look like, and one that shows how an "ideal" corner
+	 * would look like with edges with specific slopes meeting to form the corner.
+	 * 
+	 * We then calculate cost by checking for clumps (2x2 blocks caused by bad intersection of lines)
+	 * and for spurious pixels (pixels that appear in actual version, but not in the ideal version). 
+	 * 
+	 * This method will probably need some more improvement before we can actually use it for painting
+	 * shapes, and should probably also be combined with line error calculations. 
 	 */
 	public static int calculateCost(Shape3D shape, Point2D pStart, int vIndex,
 			boolean[]isDrawn, double[][] isoMatrix) {
@@ -198,6 +208,7 @@ class CanvasUtils {
 			}
 		}
 		
+		// check for spurious pixels which don't match up with the ideal version
 		for (int i=0; i<sample_size-(clump_size-1); i++) {
 			for (int j=0; j<sample_size-(clump_size-1); j++) {
 				Color c_act = new Color(actual.getRGB((int)(start.x+i), (int)(start.y+j)));
@@ -211,59 +222,68 @@ class CanvasUtils {
 				}
 			}
 		}
-		//return cost;
-		return 0;
+		return cost;
 	}
 
-	
 	public static void paintLine(Graphics2D g2, int slope[], Point2D p1, Point2D p2) {
 		int slopeY=slope[0], slopeX=slope[1], lineError, span, altspan, numAlt;
 		p1 = p1.truncate(); p2 = p2.truncate();
 		Point2D start = p1.clone();
 		g2.setColor(Color.black);
-		
 		if (slopeX == 0) {
 			// draw vertical line
 			g2.drawLine((int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
 			return;
 		}
+		
 		lineError = getLineError(p1, p2, slope);
 		span = Math.abs((slopeY==1) ? slopeX : slopeY);
 		altspan = span;
-		numAlt = 0;
+		numAlt = Math.abs(lineError);
 		
 		// if we predict that the slope won't allow for the points to connect,
 		// then we just draw a regular line
 		if (span < 3 && Math.abs(lineError) > span) {
 			g2.setColor(Color.red);
 			g2.drawLine((int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
-			g2.setColor(Color.black);
 			return;
 		} else if (span >= 3 && Math.abs(lineError) > span) {
-			int maxError = 0;
+			/*
+			 * For lines with slope 1/n or n where n >= 3, we can alternate either n and n-1 or 
+			 * n and n+1 in order for them to connect, so we have a much wider tolerance for line error
+			 */
+			int maxError = 0, maxAlt = 0;
+			// we can have a maximum of half the spans be n+1 or n-1 spans, and use this to widen our
+			// tolerance of error
 			if (slopeY == 1) {
 				int dy = (int) Math.abs(p2.y - p1.y);
-				numAlt = (dy % 2 == 0) ? dy / 2 : (dy / 2) + 1;
+				maxAlt = (dy % 2 == 0) ? dy / 2 : (dy / 2) + 1;
 			} else {
 				int dx = (int) Math.abs(p2.x - p1.x);
-				numAlt = (dx % 2 == 0) ? dx / 2 : (dx / 2) + 1;
+				maxAlt = (dx % 2 == 0) ? dx / 2 : (dx / 2) + 1;
 			}
-			maxError = Math.abs(lineError) + numAlt;
+			maxError = span + maxAlt;
 			if (Math.abs(lineError) > maxError) {
+				// if the error is still way too large, then we just draw a regular red line
 				g2.setColor(Color.red);
 				g2.drawLine((int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
-				g2.setColor(Color.black);
 				return;				
 			}
+			// this is span we alternate with.
 			altspan = (lineError > 0) ? altspan+1 : altspan-1;
 		}
 		
 		boolean useAltSpan = false;
+		
+		// this while loop condition looks complicated, but actually just means
+		// "while we haven't connected the two points together yet". We draw each line
+		// one span at a time until we get to the other end.
 		while( ((p2.x < start.x) ? (p2.x <= p1.x) : (p2.x >= p1.x)) && 
 			   ((p2.y < start.y) ? (p2.y <= p1.y) : (p2.y >= p1.y))) {
 			// draw the line
 			int i=0;
 			if (slopeY == 1) {
+				// draw the span (horizontal because of 1/n slope)
 				for (i = 0; i < ((useAltSpan) ? altspan : span); i++) {
 					// figure out x-coordinate of pixel we want to draw
 					int dx = (p2.x < p1.x) ? (int)(p1.x-i) : (int)(p1.x+i);
@@ -275,29 +295,27 @@ class CanvasUtils {
 				// depending on where p2 is, adjust p1
 				p1.x = (p2.x < start.x) ? p1.x-((i == 0) ? 1 : i) : p1.x+((i == 0) ? 1 : i);
 				p1.y = (p2.y < start.y) ? p1.y-1 : p1.y+1;
-				if (numAlt > 0) {
-					numAlt--;
-					useAltSpan = !useAltSpan;
-				} else {
-					useAltSpan = false;
-				}
+				
 			} else if (slopeX == 1) {
+				// draw the span (vertical because of n slope)
 				for (i=0; i < ((useAltSpan) ? altspan : span); i++) {
+					// figure out y-coordinate of the pixel we want to draw
 					int dy = (p2.y < p1.y) ? (int)(p1.y-i) : (int)(p1.y+i);
 					g2.fillRect((int)p1.x, dy, 1, 1);
 					if ((p2.y < p1.y) ? (dy <= p2.y) : (dy >= p2.y)) {
 						break;		
 					}
 				}
-				if (numAlt > 0) {
-					numAlt--;
-					useAltSpan = !useAltSpan;
-				} else {
-					useAltSpan = false;
-				}
 				// depending on where p2 is, adjust p1
 				p1.y = (p2.y < start.y) ? p1.y-((i == 0) ? 1 : i) : p1.y+((i == 0) ? 1 : i);
 				p1.x = (p2.x < start.x) ? p1.x-1 : p1.x+1;
+			}
+			// we use this to switch between n and (n+1 or n-1) spans
+			if (numAlt > 0) {
+				if (useAltSpan)	numAlt--;
+				useAltSpan = !useAltSpan;
+			} else {
+				useAltSpan = false;
 			}
 		}
 	}
