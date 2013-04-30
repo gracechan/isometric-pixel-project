@@ -20,7 +20,8 @@ implements MouseListener, MouseMotionListener {
 	private BufferedImage imgdata;
 	private CanvasData data;
 	private final int vertex_size = 4;
-	private CanvasActions op;
+	private CanvasActions op = CanvasActions.TRANSLATE_OBJECT;
+	private CanvasActions lineOption = CanvasActions.LINE_OPTION_ALTERNATE;
 
 	public Canvas(CanvasData data) {
 		this.data = data;
@@ -58,14 +59,15 @@ implements MouseListener, MouseMotionListener {
 		g2.translate(getWidth()/2, getHeight()/2);
 		
 		for(int i=0; i<data.getNumShapes(); i++) {
-			drawShape(g2, data.getShape(i), isoMatrix, i);
+			drawShape(g2, data.getShape(i), isoMatrix, i, lineOption);
 		}
 		
 		g2.setTransform(at);
 		revalidate();
 	}
 	
-	public void drawShape(Graphics2D g, Shape3D shape, double[][] isoMatrix, int shapeIndex) {	
+	public void drawShape(Graphics2D g, Shape3D shape, double[][] isoMatrix, int shapeIndex, 
+			CanvasActions lineOption) {	
 		for(int i=0; i<shape.getNumFaces(); i++) {
 			int[] face = shape.getFace(i);
 			int numVertices = face.length;
@@ -91,7 +93,7 @@ implements MouseListener, MouseMotionListener {
 		}
 		
 		g.setColor(Color.black);
-		CanvasUtils.paintShape(imgdata, g, shape, isoMatrix);	
+		CanvasUtils.paintShape(imgdata, g, shape, isoMatrix, lineOption);	
 	}	
 	
 	// Checks to see if we have clicked on a vertex
@@ -114,6 +116,10 @@ implements MouseListener, MouseMotionListener {
 	
 	public void setOperation(CanvasActions c) {
 		op = c;		
+	}
+	
+	public void setLineOption(CanvasActions c) {
+		lineOption = c;		
 	}
 	
 	public void mouseClicked(MouseEvent e) {

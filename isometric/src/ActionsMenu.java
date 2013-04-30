@@ -10,13 +10,14 @@ import javax.swing.KeyStroke;
 
 public class ActionsMenu extends JMenu implements ActionListener {
 	private Canvas canvas;
-	private ButtonGroup actionGroup;
+	private ButtonGroup actionGroup, lineOptionGroup;
 	private JMenuItem translate, distort;
+	private JMenuItem gcdLine, altLine;
 
 	public ActionsMenu(Canvas canvas) {
 		super("Actions");
 		this.canvas = canvas;
-		actionGroup = new ButtonGroup();
+		actionGroup = new ButtonGroup(); lineOptionGroup = new ButtonGroup();
 		
 		translate = new JRadioButtonMenuItem("Translate Object");
 		translate.setSelected(true);
@@ -31,6 +32,20 @@ public class ActionsMenu extends JMenu implements ActionListener {
 		actionGroup.add(distort);
 		add(distort);
 		distort.addActionListener(this);
+		
+		addSeparator();
+		
+		altLine = new JRadioButtonMenuItem("Default");
+		altLine.setSelected(true);
+		canvas.setOperation(CanvasActions.TRANSLATE_OBJECT);
+		lineOptionGroup.add(altLine);
+		add(altLine);
+		altLine.addActionListener(this);
+		
+		gcdLine = new JRadioButtonMenuItem("GCD Line Drawing");
+		lineOptionGroup.add(gcdLine);
+		add(gcdLine);
+		gcdLine.addActionListener(this);
 	}
 
 	@Override
@@ -41,6 +56,12 @@ public class ActionsMenu extends JMenu implements ActionListener {
 		} else if (e.getSource() == distort) {
 			System.out.println("distort");
 			canvas.setOperation(CanvasActions.DISTORT_VERTEX);
-		}		
+		} else if (e.getSource() == gcdLine) {
+			canvas.setLineOption(CanvasActions.LINE_OPTION_GCD);
+			canvas.repaint();
+		} else if (e.getSource() == altLine) {
+			canvas.setLineOption(CanvasActions.LINE_OPTION_ALTERNATE);
+			canvas.repaint();
+		}
 	}
 }
