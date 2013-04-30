@@ -45,7 +45,8 @@ class CanvasUtils {
 		g2.drawLine(0, 0, (int) z_axis2D_neg.x, (int) z_axis2D_neg.y);	
 	}
 	
-	public static void paintShape(BufferedImage bi, Graphics2D g2, Shape3D shape, double[][] isoMatrix) {
+	public static void paintShape(BufferedImage bi, Graphics2D g2, Shape3D shape, double[][] isoMatrix,
+			CanvasActions lineOption) {
 		boolean[] isDrawn = new boolean[shape.getNumEdges()];
 		
 		// initialize array to all false since we haven't drawn anything yet.
@@ -112,10 +113,10 @@ class CanvasUtils {
 				
 				// if we have a vertical edge, just draw between the two points to avoid jaggy verticals
 				if (slope[1] == 0) {
-					paintLine(g2, slope, p1, p2);
+					paintLine(g2, slope, p1, p2, lineOption);
 					continue;
 				}
-				paintLine(g2, slope, bestDraw, p2);
+				paintLine(g2, slope, bestDraw, p2, lineOption);
 			}
 		} // for every vertex
 	}
@@ -151,7 +152,7 @@ class CanvasUtils {
 	 * shapes, and should probably also be combined with line error calculations. 
 	 */
 	public static int calculateCost(Shape3D shape, Point2D pStart, int vIndex,
-			boolean[]isDrawn, double[][] isoMatrix) {
+			boolean[]isDrawn, double[][] isoMatrix, CanvasActions lineOpt) {
 		Vector<Integer> adjVertices = shape.getAdjacentVertices(vIndex);
 		Point2D p1 = pStart.truncate();
 		int cost = 0;
@@ -180,11 +181,11 @@ class CanvasUtils {
 					p1.y + ((p2_actual.y >= p1.y) ? dy : -dy));
 			
 			if (isDrawn[eIndex]) {
-				paintLine(actualg, slope, p2_actual, p1);
+				paintLine(actualg, slope, p2_actual, p1, lineOpt);
 			} else {
-				paintLine(actualg, slope, p1, p2_actual);				
+				paintLine(actualg, slope, p1, p2_actual, lineOpt);				
 			}
-			paintLine(idealg, slope, p1, p2_ideal);
+			paintLine(idealg, slope, p1, p2_ideal, lineOpt);
 		}
 		idealg.setTransform(i_at);
 		actualg.setTransform(a_at);
@@ -224,8 +225,16 @@ class CanvasUtils {
 		}
 		return cost;
 	}
+	
+	public static void paintLine(Graphics2D g2, int slope[], Point2D p1, Point2D p2, CanvasActions lineOpt) {
+		if (lineOpt == CanvasActions.LINE_OPTION_ALTERNATE) {
+			paintLineAlt(g2, slope, p1, p2);
+		} else if (lineOpt == CanvasActions.LINE_OPTION_GCD) {
+			paintLineGCD(g2, p1, p2);
+		}
+	}
 
-	public static void paintLine(Graphics2D g2, int slope[], Point2D p1, Point2D p2) {
+	private static void paintLineAlt(Graphics2D g2, int slope[], Point2D p1, Point2D p2) {
 		int slopeY=slope[0], slopeX=slope[1], lineError, span, altspan, numAlt;
 		p1 = p1.truncate(); p2 = p2.truncate();
 		Point2D start = p1.clone();
@@ -318,5 +327,111 @@ class CanvasUtils {
 				useAltSpan = false;
 			}
 		}
+	}
+	
+	private static void paintLineGCD(Graphics2D g2, Point2D p1, Point2D p2) {
+		p1 = p1.truncate(); p2 = p2.truncate();
+		int width = Math.abs((int)(p2.x - p1.x)), height = Math.abs((int)(p2.y - p1.y));
+		g2.setColor(Color.black);
+		
+		if (width == 0) {
+			// draw vertical line
+			g2.drawLine((int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
+			return;
+		}
+		
+		double slope = (double) height / width;
+		int n = Math.abs((Math.abs(slope) >= 1) ? (int)slope : (int)(1/slope));
+		int b = (Math.abs(slope) >= 1) ? (int)(height - n*width) : (int) (width - n*height);
+		int a = (Math.abs(slope) >= 1) ? (int)(width - b) : (int) (height - b);
+		
+		Vector<Vector<Integer>> groupa = new Vector<Vector<Integer>>(), 
+				groupb = new Vector<Vector<Integer>>(), result;
+		
+		for(int i=0; i<a; i++) {
+			Vector<Integer> span = new Vector<Integer>();
+			span.add(new Integer(n));
+			groupa.add(span);	
+		}
+		
+		for(int i=0; i<b; i++) {
+			Vector<Integer> span = new Vector<Integer>();
+			span.add(new Integer(n+1));
+			groupb.add(span);				
+		}
+		
+		result = gcdPaintLineHelper(groupa, groupb);
+		
+		Point2D start = p1.clone();
+		for(int j=0; j<result.size(); j++) {
+			for(int k=0; k<result.get(j).size(); k++) {
+				int i;
+				if (Math.abs(slope) < 1) {
+					for (i = 0; i < result.get(j).get(k); i++) {
+						// figure out x-coordinate of pixel we want to draw
+						int dx = (p2.x < p1.x) ? (int)(p1.x-i) : (int)(p1.x+i);
+						g2.fillRect(dx, (int)p1.y, 1, 1);
+						if ((p2.x < p1.x) ? (dx <= p2.x) : (dx >= p2.x)) {
+							break;		
+						}
+					}
+					// depending on where p2 is, adjust p1
+					p1.x = (p2.x < start.x) ? p1.x-((i == 0) ? 1 : i) : p1.x+((i == 0) ? 1 : i);
+					p1.y = (p2.y < start.y) ? p1.y-1 : p1.y+1;
+				} else {
+					// draw the span (vertical because of n slope)
+					for (i=0; i < result.get(j).get(k); i++) {
+						// figure out y-coordinate of the pixel we want to draw
+						int dy = (p2.y < p1.y) ? (int)(p1.y-i) : (int)(p1.y+i);
+						g2.fillRect((int)p1.x, dy, 1, 1);
+						if ((p2.y < p1.y) ? (dy <= p2.y) : (dy >= p2.y)) {
+							break;		
+						}
+					}
+					// depending on where p2 is, adjust p1
+					p1.y = (p2.y < start.y) ? p1.y-((i == 0) ? 1 : i) : p1.y+((i == 0) ? 1 : i);
+					p1.x = (p2.x < start.x) ? p1.x-1 : p1.x+1;
+				}
+			}
+		}
+		
+	}
+	
+	// each Vector<Integer> represents a block of segments
+	private static Vector<Vector<Integer>> gcdPaintLineHelper(Vector<Vector<Integer>> seg1, 
+			Vector<Vector<Integer>> seg2) {
+		int s1 = seg1.size(), s2 = seg2.size();
+		if (s1 == 0) {
+			return seg2;
+		}
+		if (s2 == 0) {
+			return seg1;
+		}
+		
+		// if size of first group of segments is bigger, then we attach segments from 
+		// the second group onto the segments 
+		// ex. if seg1: 7 segments of 2-3s, seg2: 3 segments of 3-2s
+		//  at the end, we should have:
+		//  seg1: 1 segment of 2, seg2: 3 segments of 3-2-2-3-2-3s
+		if (s1 >= s2) {
+			int numAttach = s1 / s2;
+			for(int i=0; i<s2; i++) {
+				for (int j=0; j<numAttach; j++) {
+					seg2.get(i).addAll(seg1.remove(0));
+				}
+			}
+		}
+		
+		// similar to above
+		if (s1 < s2) {
+			int numAttach = s2 / s1;
+			for(int i=0; i<s1; i++) {
+				for (int j=0; j<numAttach; j++) {
+					seg1.get(i).addAll(seg2.remove(0));
+				}
+			}
+		}
+		
+		return gcdPaintLineHelper(seg1, seg2);
 	}
 }
